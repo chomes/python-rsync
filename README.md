@@ -1,2 +1,3 @@
 # python-rsync
-A script I'm creating through python to run remote and local copying, it will allow logging and eventually email logging too.
+This script will be used to run rsync backups locally between folders and also remotely.  As it progresses it will have a config file and a text file for exclusions.
+
