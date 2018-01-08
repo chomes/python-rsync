@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-# Version 0.1
-# Version 0.1 basic rsync, next version will include exclude files and to save config into files that script can read from.
+# Version 1.0
+# Author: chomes@github
 # importing functions
 import syncfuncs
 
 # Welcome message
 print("Welcome to the Backup script, this will allow you to choose whether you want to back up locally or remotely")
-
+print("\n")
 print("You can choose to either back up from remote to local or local to remote it's entirely your choice")
-
+print("\n")
 # remote or local backup options
-remlo = input("Is this a back up locally from one place to another or a remote server backup? (local OR remote)")
+remlo = input("Is this a back up locally from one place to another or a remote server backup? (local OR remote)").lower()
 if remlo == 'local':
 	syncfuncs.localsyn()
 elif remlo == 'remote':
-	resync = input("Are you copying from local to remote server or remote server to local? (local OR remote)")
+    resync = input("Is the copy from local or is it from a remote server? (local OR remote) ").lower()
     if resync == 'remote':
         syncfuncs.remlocal()
-	elif resync == 'local':
+    elif resync == 'local':
         syncfuncs.localrem()

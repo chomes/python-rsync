@@ -4,7 +4,6 @@
 import time
 from subprocess import call
 import getpass
-import configparser
 
 
 # Local sync function
@@ -103,9 +102,20 @@ def localsyn():
 # local to remote server backup
 def localrem():
     print("Now we will choose the source and destination")
-    sor = input("What is the FULL PATH to the directory you want to backup? ")
-    des = input("What is the FULL PATH to the directory you want to copy to? ")
-    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+    # Loop to make sure directory ends with /
+    while True:
+        sor = input("What is the FULL PATH to the directory you want to backup? ")
+        if sor.endswith("/"):
+            break
+        else:
+            print("Directory must have a / at the end, please add one")
+    while True:
+        des = input("What is the FULL PATH to the directory you want to copy to? ")
+        if des.endswith("/"):
+            break
+        else:
+            print("Directory must have a / at the end, please add one")
+    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {}".format(getpass.getuser()))
     if not usn:
         usn = getpass.getuser()
     remserv = input("What is the server you want to connect to? ")
@@ -118,12 +128,18 @@ def localrem():
         change = input("Did you want to make any changes? (source, destination, port, username, server, no)").lower()
         if change == 'source':
             sor = input("What is the FULL PATH to the directory you want to backup? ")
-            print("We will copy from {} to {}".format(sor, des))
-            continue
+            if sor.endswith("/"):
+                print("We will copy from {} to {}".format(sor, des))
+                continue
+            else:
+                print("The directory must have a / please add one")
         elif change == 'destination':
             des = input("What is the FULL PATH to the dorectory you want to copy to? ")
-            print("We will copy from {} to {}".format(sor, des))
-            continue
+            if sor.endswith("/"):
+                print("We will copy from {} to {}".format(sor, des))
+                continue
+            else:
+                print("The directory must have a / please add one")
         elif change == 'port':
             servport = input("What is the server port? If you don't choose one we will default to normal ssh ")
             if not servport:
