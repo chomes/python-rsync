@@ -10,9 +10,9 @@ print("\n")
 print("You can choose to either back up from remote to local or local to remote it's entirely your choice")
 print("\n")
 # remote or local backup options
-remlo = input("Is this a back up locally from one place to another or a remote server backup? (local OR remote)").lower()
+remlo = input("Is this a back up local backup or are you backing up to a remote server? (local OR remote) ").lower()
 if remlo == 'local':
-	syncfuncs.localsyn()
+    syncfuncs.localsyn()
 elif remlo == 'remote':
     resync = input("Is the copy from local or is it from a remote server? (local OR remote) ").lower()
     if resync == 'remote':

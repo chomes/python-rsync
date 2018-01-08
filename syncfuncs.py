@@ -25,25 +25,25 @@ def sync_call_manual(startbk, sor, des, logloc):
 # Function for remote to local & local to remote
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
     if startbk == 1:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{} --log-file={}".format(servport, sor, usn, remserv, des, logloc))
+        print("Starting backup from {} to {}@{}:{} using port {} with logs".format(sor, usn, remserv, des, servport))
         lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
         call(lcrem)
         time.sleep(1)
         print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
     elif startbk == 2:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
+        print("Starting backup from {} to {}@{}:{} using port {}".format(sor, usn, remserv, des, servport))
         lclremlg = ["rsync -avv -e 'ssh -p %s' %s %s@%s:%s" % (servport, sor, usn, remserv, des)]
         call(lclremlg)
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 3:
-        print("Starting backup, rsync -avv 'ssh -p {}' {}@{}:{} {}".format(servport, sor, usn, remserv, des))
+        print("Starting backup from {}@{}:{} to {} using port {}".format(sor, usn, remserv, des, servport))
         remlcnl = ["rsync -avv -e 'ssh -p %s' %s@%s:%s %s" % (servport, sor, usn, remserv, des)]
         call(remlcnl)
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 4:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{} --log-file={}".format(servport, sor, usn, remserv, des, logloc))
+        print("Starting backup from {}@{}:{} to {} using port {} with logs".format(usn, remserv, sor, des, servport))
         remlclg = ["rsync -avv -e 'ssh -p %s ' %s@%s:%s %s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
         call(remlclg)
         time.sleep(1)
@@ -115,7 +115,7 @@ def localrem():
             break
         else:
             print("Directory must have a / at the end, please add one")
-    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {}".format(getpass.getuser()))
+    usn = input("What's the username? If none given we'll use the current {}".format(getpass.getuser()))
     if not usn:
         usn = getpass.getuser()
     remserv = input("What is the server you want to connect to? ")
@@ -147,7 +147,7 @@ def localrem():
             print("The port you have chosen is {}".format(servport))
             continue
         elif change == 'username':
-            usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+            usn = input("What's the username? If none given we'll use the current {}".format(getpass.getuser()))
             print("The username you have chosen is {}".format(usn))
             continue
         elif change == 'server':
@@ -191,7 +191,7 @@ def remlocal():
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to copy from? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
-    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+    usn = input("What's the username? If none given we'll use the current {}".format(getpass.getuser()))
     if not usn:
         usn = getpass.getuser()
     remserv = input("What is the server you want to connect to? ")
@@ -217,7 +217,7 @@ def remlocal():
             print("The port you have chosen is {}".format(servport))
             continue
         elif change == 'username':
-            usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+            usn = input("What's the username? If none given we'll use the current {}".format(getpass.getuser()))
             print("The username you have chosen is {}".format(usn))
             continue
         elif change == 'server':
