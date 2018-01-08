@@ -3,6 +3,24 @@
 # Author: chomes@github
 # importing functions
 import syncfuncs
+from shutil import which
+
+
+# Checking if user has rsync installed
+if which("rsync") is not None:
+    print("")
+else:
+    print("Rsync is not installed, installing please make sure you run the app in sudo or this won't work")
+    if which("apt") is not None:
+        syncfuncs.install_apt("rsync")
+        print("Package has been installed, exiting app, please run without sudo")
+        exit()
+    elif which("yum") is not None:
+        syncfuncs.install_yum("rsync")
+        print("Package has been installed, exiting app, please run without sudo")
+        exit()
+
+
 
 # Welcome message
 print("Welcome to the Backup script, this will allow you to choose whether you want to back up locally or remotely")
