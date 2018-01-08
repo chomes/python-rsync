@@ -27,13 +27,13 @@ def sync_call_manual(startbk, sor, des, logloc):
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
     if startbk == 1:
         print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{} --log-file={}".format(servport, sor, usn, remserv, des, logloc))
-        lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s"% (servport, sor, usn, remserv, des, logloc)]
+        lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
         call(lcrem)
         time.sleep(1)
         print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
     elif startbk == 2:
         print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
-        lclremlg = ["rsync -avv -e 'ssh -p %s' %s %s@%s:%s"% (servport, sor, usn, remserv, des)]
+        lclremlg = ["rsync -avv -e 'ssh -p %s' %s %s@%s:%s" % (servport, sor, usn, remserv, des)]
         call(lclremlg)
         time.sleep(1)
         print("The backup is now complete!")
