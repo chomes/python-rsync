@@ -5,16 +5,21 @@ import time
 from subprocess import call
 import getpass
 import apt
+import yum
 
+
+# Debian install function
 def install_apt(pkg_name):
     cache = apt.Cache()
     cache.update()
     pkg = cache[pkg_name]
     pkg.mark_install()
 
+
+# Yum install function
 def install_yum(pkg_name):
-    rsync_install = ["yum install %s -y" % (pkg_name)]
-    call(rsync_install)
+    yb = yum.YumBase()
+    yb.install(pkg_name)
 
 
 # Local sync function
