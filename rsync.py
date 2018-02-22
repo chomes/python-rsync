@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Version 0.1
 # Version 0.1 basic rsync, next version will include exclude files and to save config into files that script can read from.
+# Version 1.0 config
 # importing functions
 import syncfuncs
 

@@ -26,7 +26,8 @@ def sync_call_manual(startbk, sor, des, logloc):
 # Function for remote to local & local to remote
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
     if startbk == 1:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{} --log-file={}".format(servport, sor, usn, remserv, des, logloc))
+        print('''Starting backup, rsync -avv 'ssh -p {}'
+        {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
         lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
         call(lcrem)
         time.sleep(1)
@@ -38,13 +39,15 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 3:
-        print("Starting backup, rsync -avv 'ssh -p {}' {}@{}:{} {}".format(servport, sor, usn, remserv, des))
+        print(''' Starting backup, rsync -avv 'ssh -p {}' 
+        {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
         remlcnl = ["rsync -avv -e 'ssh -p %s' %s@%s:%s %s" % (servport, sor, usn, remserv, des)]
         call(remlcnl)
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 4:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{} --log-file={}".format(servport, sor, usn, remserv, des, logloc))
+        print('''Starting backup, rsync -avv 'ssh -p {}'
+        {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
         remlclg = ["rsync -avv -e 'ssh -p %s ' %s@%s:%s %s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
         call(remlclg)
         time.sleep(1)
@@ -76,8 +79,16 @@ def localsyn():
         logging = input("Do you want a log of the backup? (y or n)").lower()
         if logging == "n":
             logloc = ""
-            print("No logs required running backup!")
             startbk = 2
+            print("Saving to config for automation, later")
+            config = configparser.ConfigParser()
+            config['Manual'] = {'bkoption': startbk,
+                                'source': sor,
+                                'destination': des,
+                                'log_location': logloc}
+            with open('config.ini' 'w') as configfile:
+                config.write(configfile)
+            print("Config file saved. No logs required running backup!")
             sync_call_manual(startbk, sor, des, logloc)
             break
         elif logging == "y":
@@ -89,7 +100,15 @@ def localsyn():
                     logloc = logloc + timestamp
                     logloc = logloc + "-logfile"
                     startbk = 1
-                    print("Ok lets run the backup!")
+                    print("Saving to config for automation, later")
+                    config = configparser.ConfigParser()
+                    config['Manual'] = {'bkoption': startbk,
+                                        'source': sor,
+                                        'destination': des,
+                                        'log_location': logloc}
+                    with open('config.ini' 'w') as configfile:
+                        config.write(configfile)
+                    print("Config saved. Ok, lets run the backup!")
                     sync_call_manual(startbk, sor, des, logloc)
                     break
                 else:
@@ -105,7 +124,8 @@ def localrem():
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to backup? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
-    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+    usn = input('''Please state the user for the backup,
+    if you don't state one we'll use the default one {} '''.format(getpass.getuser()))
     if not usn:
         usn = getpass.getuser()
     remserv = input("What is the server you want to connect to? ")
@@ -131,7 +151,8 @@ def localrem():
             print("The port you have chosen is {}".format(servport))
             continue
         elif change == 'username':
-            usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+            usn = input('''Please state the user for the backup, 
+            if you don't state one we'll use the default one {} '''.format(getpass.getuser()))
             print("The username you have chosen is {}".format(usn))
             continue
         elif change == 'server':
@@ -175,7 +196,8 @@ def remlocal():
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to copy from? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
-    usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+    usn = input('''Please state the user for the backup,
+    if you don't state one we'll use the default one {} '''.format(getpass.getuser()))
     if not usn:
         usn = getpass.getuser()
     remserv = input("What is the server you want to connect to? ")
@@ -201,7 +223,8 @@ def remlocal():
             print("The port you have chosen is {}".format(servport))
             continue
         elif change == 'username':
-            usn = input("Please state the user for the backup, if you don't state one we'll use the default one {} ".format(getpass.getuser()))
+            usn = input('''Please state the user for the backup,
+            if you don't state one we'll use the default one {} '''.format(getpass.getuser()))
             print("The username you have chosen is {}".format(usn))
             continue
         elif change == 'server':
