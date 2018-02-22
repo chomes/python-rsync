@@ -80,13 +80,13 @@ def localsyn():
         if logging == "n":
             logloc = ""
             startbk = 2
-            print("Saving to config for automation, later")
+            print("Saving to config for automation later")
             config = configparser.ConfigParser()
             config['Manual'] = {'bkoption': startbk,
                                 'source': sor,
                                 'destination': des,
                                 'log_location': logloc}
-            with open('config.ini' 'w') as configfile:
+            with open('config.ini', 'w') as configfile:
                 config.write(configfile)
             print("Config file saved. No logs required running backup!")
             sync_call_manual(startbk, sor, des, logloc)
@@ -100,13 +100,13 @@ def localsyn():
                     logloc = logloc + timestamp
                     logloc = logloc + "-logfile"
                     startbk = 1
-                    print("Saving to config for automation, later")
+                    print("Saving to config for automation later")
                     config = configparser.ConfigParser()
                     config['Manual'] = {'bkoption': startbk,
                                         'source': sor,
                                         'destination': des,
                                         'log_location': logloc}
-                    with open('config.ini' 'w') as configfile:
+                    with open('config.ini', 'w') as configfile:
                         config.write(configfile)
                     print("Config saved. Ok, lets run the backup!")
                     sync_call_manual(startbk, sor, des, logloc)
@@ -167,8 +167,20 @@ def localrem():
         logging = input("Do you want a log of the backup? (y or n)").lower()
         if logging == "n":
             logloc = ""
-            print("No logs required running backup!")
+
             startbk = 2
+            print("Saving to config for automation later")
+            config = configparser.ConfigParser()
+            config['LoRem'] = {'bkoption': startbk,
+                               'source': sor,
+                               'destination': des,
+                               'log_location': logloc,
+                               'username': usn,
+                               'remote_server': remserv,
+                               'server_port': servport}
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)
+            print("Config saved.  No logs required running backup!")
             sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
             break
         elif logging == "y":
@@ -180,7 +192,18 @@ def localrem():
                     logloc = logloc + timestamp
                     logloc = logloc + "-logfile"
                     startbk = 1
-                    print("Ok lets run the backup!")
+                    print("Saving to config for automation later")
+                    config = configparser.ConfigParser()
+                    config['LoRem'] = {'bkoption': startbk,
+                                        'source': sor,
+                                        'destination': des,
+                                        'log_location': logloc,
+                                        'username': usn,
+                                        'remote_server': remserv,
+                                        'server_port': servport}
+                    with open('config.ini', 'w') as configfile:
+                        config.write(configfile)
+                    print("Config saved.  Ok lets run the backup!")
                     sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
                     break
                 else:
@@ -239,8 +262,19 @@ def remlocal():
         logging = input("Do you want a log of the backup? (y or n)").lower()
         if logging == "n":
             logloc = ""
-            print("No logs required running backup!")
             startbk = 3
+            print("Saving to config for automation later")
+            config = configparser.ConfigParser()
+            config['RemLo'] = {'bkoption': startbk,
+                               'source': sor,
+                               'destination': des,
+                               'log_location': logloc,
+                               'username': usn,
+                               'remote_server': remserv,
+                               'server_port': servport}
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)
+            print("Config saved.  Ok lets run the backup!")
             sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
             break
         elif logging == "y":
@@ -252,7 +286,18 @@ def remlocal():
                     logloc = logloc + timestamp
                     logloc = logloc + "-logfile"
                     startbk = 4
-                    print("Ok lets run the backup!")
+                    print("Saving to config for automation later")
+                    config = configparser.ConfigParser()
+                    config['RemLo'] = {'bkoption': startbk,
+                                       'source': sor,
+                                       'destination': des,
+                                       'log_location': logloc,
+                                       'username': usn,
+                                       'remote_server': remserv,
+                                       'server_port': servport}
+                    with open('config.ini', 'w') as configfile:
+                        config.write(configfile)
+                    print("Config saved.  Ok lets run the backup!")
                     sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
                     break
                 else:
