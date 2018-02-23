@@ -4,10 +4,15 @@
 # Version 1.0 config addition and automation of script
 # importing functions
 import syncfuncs
+from pathlib import Path
+
+config_file = Path("config.ini")
+if config_file.is_file():
+
+
 
 # Welcome message
 print("Welcome to the Backup script, this will allow you to choose whether you want to back up locally or remotely")
-
 print("You can choose to either back up from remote to local or local to remote it's entirely your choice")
 
 # remote or local backup options
