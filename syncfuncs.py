@@ -10,6 +10,9 @@ import configparser
 # Local sync function
 def sync_call_manual(startbk, sor, des, logloc):
     if startbk == 1:
+        timestamp = time.strftime("%Y%m%d-%H%M")
+        logloc = logloc + timestamp
+        logloc = logloc + "-logfile"
         print("Starting backup, rsync -avv {} {} --log-file={}".format(sor, des, logloc))
         lclresyn = ["rsync", "-avv", sor, des, "--log-file", logloc]
         call(lclresyn)
@@ -26,6 +29,9 @@ def sync_call_manual(startbk, sor, des, logloc):
 # Function for remote to local & local to remote
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
     if startbk == 1:
+        timestamp = time.strftime("%Y%m%d-%H%M")
+        logloc = logloc + timestamp
+        logloc = logloc + "-logfile"
         print('''Starting backup, rsync -avv 'ssh -p {}'
         {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
         lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
@@ -46,6 +52,9 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 4:
+        timestamp = time.strftime("%Y%m%d-%H%M")
+        logloc = logloc + timestamp
+        logloc = logloc + "-logfile"
         print('''Starting backup, rsync -avv 'ssh -p {}'
         {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
         remlclg = ["rsync -avv -e 'ssh -p %s ' %s@%s:%s %s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
@@ -96,9 +105,6 @@ def localsyn():
             if logloc.endswith("/"):
                 conf_log = input("Are you happy with the destination {} ? y or n ".format(logloc)).lower()
                 if conf_log == "y":
-                    timestamp = time.strftime("%Y%m%d-%H%M")
-                    logloc = logloc + timestamp
-                    logloc = logloc + "-logfile"
                     startbk = 1
                     print("Saving to config for automation later")
                     config = configparser.ConfigParser()
@@ -167,7 +173,6 @@ def localrem():
         logging = input("Do you want a log of the backup? (y or n)").lower()
         if logging == "n":
             logloc = ""
-
             startbk = 2
             print("Saving to config for automation later")
             config = configparser.ConfigParser()
@@ -188,19 +193,16 @@ def localrem():
             if logloc.endswith("/"):
                 conf_log = input("Are you happy with the destination {} ? y or n ".format(logloc)).lower()
                 if conf_log == "y":
-                    timestamp = time.strftime("%Y%m%d-%H%M")
-                    logloc = logloc + timestamp
-                    logloc = logloc + "-logfile"
                     startbk = 1
                     print("Saving to config for automation later")
                     config = configparser.ConfigParser()
                     config['LoRem'] = {'bkoption': startbk,
-                                        'source': sor,
-                                        'destination': des,
-                                        'log_location': logloc,
-                                        'username': usn,
-                                        'remote_server': remserv,
-                                        'server_port': servport}
+                                       'source': sor,
+                                       'destination': des,
+                                       'log_location': logloc,
+                                       'username': usn,
+                                       'remote_server': remserv,
+                                       'server_port': servport}
                     with open('config.ini', 'w') as configfile:
                         config.write(configfile)
                     print("Config saved.  Ok lets run the backup!")
@@ -282,9 +284,6 @@ def remlocal():
             if logloc.endswith("/"):
                 conf_log = input("Are you happy with the destination {} ? y or n ".format(logloc)).lower()
                 if conf_log == "y":
-                    timestamp = time.strftime("%Y%m%d-%H%M")
-                    logloc = logloc + timestamp
-                    logloc = logloc + "-logfile"
                     startbk = 4
                     print("Saving to config for automation later")
                     config = configparser.ConfigParser()
@@ -306,3 +305,16 @@ def remlocal():
             else:
                 print("Destination must end with a / please try again")
                 continue
+
+
+# Automated backup for local
+def lsyauto():
+    print("Reading config")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    startbk = config.get("Manual", "bkoption")
+    sor = config.get("Manual", "source")
+    des = config.get("Manual", "destination")
+    logloc = config.get("Manual", "log_location")
+    print("Running backup")
+    sync_call_manual(startbk, sor, des, logloc)
