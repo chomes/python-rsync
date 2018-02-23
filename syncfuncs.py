@@ -3,8 +3,23 @@
 # Defining functions
 import time
 from subprocess import call
-import getpass
 import configparser
+import getpass
+import apt
+
+
+# Function for apt install of package
+def install_apt(pkg_name):
+    cache = apt.Cache()
+    cache.update()
+    pkg = cache[pkg_name]
+    pkg.mark_install()
+
+
+# Function for yum install of package
+def install_yum(pkg_name):
+    rsync_install = ["yum install %s -y" % (pkg_name)]
+    call(rsync_install)
 
 
 # Local sync function

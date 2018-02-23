@@ -6,11 +6,25 @@
 # Future versions:
 # Version 1.1 lock file to stop same backup running, along with a way of telling if the backup is still running.
 # Version 1.2 email notification
-
-# importing functions
+# Importing functions
 import syncfuncs
+from shutil import which
 from pathlib import Path
 import configparser
+
+# Checking if user has rsync installed
+if which("rsync") is not None:
+    print("")
+else:
+    print("Rsync is not installed, installing please make sure you run the app in sudo or this won't work")
+    if which("apt") is not None:
+        syncfuncs.install_apt("rsync")
+        print("Package has been installed, exiting app, please run without sudo")
+        exit()
+    elif which("yum") is not None:
+        syncfuncs.install_yum("rsync")
+        print("Package has been installed, exiting app, please run without sudo")
+        exit()
 
 
 # If statement to determine manual or automated backup
