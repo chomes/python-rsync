@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# Author:chomes@github
 # Defining functions
 import time
 from subprocess import call
@@ -350,5 +350,3 @@ def reloauto():
     servport = config.get("RemLo", "server_port")
     print("Running backup")
     sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
-
-
