@@ -78,6 +78,60 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
 
 
+# Automated backup for local
+def lsyauto():
+    print("Reading config")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    if config.get("Manual", "bkoption") == '1':
+        startbk = 1
+    else:
+        startbk = 2
+    sor = config.get("Manual", "source")
+    des = config.get("Manual", "destination")
+    logloc = config.get("Manual", "log_location")
+    print("Running backup from {} to {}".format(sor, des))
+    sync_call_manual(startbk, sor, des, logloc)
+
+
+# Automated backup for local to remote
+def loreauto():
+    print("Reading config")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    if config.get("Manual", "bkoption") == '1':
+        startbk = 1
+    else:
+        startbk = 2
+    sor = config.get("LoRem", "source")
+    des = config.get("LoRem", "destination")
+    logloc = config.get("LoRem", "log_location")
+    usn = config.get("LoRem", "username")
+    remserv = config.get("LoRem", "remote_server")
+    servport = config.get("LoRem", "server_port")
+    print("Running backup")
+    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+
+
+# Automated backup for remote to local
+def reloauto():
+    print("Reading config")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    if config.get("Manual", "bkoption") == '3':
+        startbk = 3
+    else:
+        startbk = 4
+    sor = config.get("RemLo", "source")
+    des = config.get("RemLo", "destination")
+    logloc = config.get("RemLo", "log_location")
+    usn = config.get("RemLo", "username")
+    remserv = config.get("RemLo", "remote_server")
+    servport = config.get("RemLo", "server_port")
+    print("Running backup")
+    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+
+
 # Creating manual backup of local copy
 def localsyn():
     print("Now we will choose the source and destination")
@@ -112,6 +166,7 @@ def localsyn():
                                 'log_location': logloc}
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
+                configfile.close()
             print("Config file saved. No logs required running backup!")
             sync_call_manual(startbk, sor, des, logloc)
             break
@@ -129,6 +184,7 @@ def localsyn():
                                         'log_location': logloc}
                     with open('config.ini', 'w') as configfile:
                         config.write(configfile)
+                        configfile.close()
                     print("Config saved. Ok, lets run the backup!")
                     sync_call_manual(startbk, sor, des, logloc)
                     break
@@ -200,6 +256,7 @@ def localrem():
                                'server_port': servport}
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
+                configfile.close()
             print("Config saved.  No logs required running backup!")
             sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
             break
@@ -220,6 +277,7 @@ def localrem():
                                        'server_port': servport}
                     with open('config.ini', 'w') as configfile:
                         config.write(configfile)
+                        configfile.close()
                     print("Config saved.  Ok lets run the backup!")
                     sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
                     break
@@ -291,6 +349,7 @@ def remlocal():
                                'server_port': servport}
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)
+                configfile.close()
             print("Config saved.  Ok lets run the backup!")
             sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
             break
@@ -311,6 +370,7 @@ def remlocal():
                                        'server_port': servport}
                     with open('config.ini', 'w') as configfile:
                         config.write(configfile)
+                        configfile.close()
                     print("Config saved.  Ok lets run the backup!")
                     sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
                     break
@@ -320,48 +380,3 @@ def remlocal():
             else:
                 print("Destination must end with a / please try again")
                 continue
-
-
-# Automated backup for local
-def lsyauto():
-    print("Reading config")
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    startbk = config.get("Manual", "bkoption")
-    sor = config.get("Manual", "source")
-    des = config.get("Manual", "destination")
-    logloc = config.get("Manual", "log_location")
-    print("Running backup")
-    sync_call_manual(startbk, sor, des, logloc)
-
-
-# Automated backup for local to remote
-def loreauto():
-    print("Reading config")
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    startbk = config.get("LoRem", "bkoption")
-    sor = config.get("LoRem", "source")
-    des = config.get("LoRem", "destination")
-    logloc = config.get("LoRem", "log_location")
-    usn = config.get("LoRem", "username")
-    remserv = config.get("LoRem", "remote_server")
-    servport = config.get("LoRem", "server_port")
-    print("Running backup")
-    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
-
-
-# Automated backup for remote to local
-def reloauto():
-    print("Reading config")
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    startbk = config.get("RemLo", "bkoption")
-    sor = config.get("RemLo", "source")
-    des = config.get("RemLo", "destination")
-    logloc = config.get("RemLo", "log_location")
-    usn = config.get("RemLo", "username")
-    remserv = config.get("RemLo", "remote_server")
-    servport = config.get("RemLo", "server_port")
-    print("Running backup")
-    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
