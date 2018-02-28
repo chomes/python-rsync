@@ -18,7 +18,7 @@ def install_apt(pkg_name):
 
 # Function for yum install of package
 def install_yum(pkg_name):
-    rsync_install = ["yum install %s -y" % (pkg_name)]
+    rsync_install = ["yum", "install", pkg_name, "-y"]
     call(rsync_install)
 
 

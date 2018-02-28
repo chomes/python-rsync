@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Author: chomes@github
 # Current version: 1.0
-# Version 0.1 basic rsync with copying locally and remotely.
-# Version 1.0 config addition and automation of script
+# Version 1.0 basic rsync with copying locally and remotely.
+# Version 1.1 config addition and automation of script
 # Future versions:
-# Version 1.1 lock file to stop same backup running, along with a way of telling if the backup is still running.
-# Version 1.2 email notification
+# Version 1.2 lock file to stop same backup running, along with a way of telling if the backup is still running.
+# Version 1.3 email notification
 # Importing functions
 import syncfuncs
 from shutil import which
