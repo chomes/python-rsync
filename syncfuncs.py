@@ -52,6 +52,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
         ds = '%s@%s:%s' % (usn, remserv, des)
         lcremlg = 'rsync -avv --port=%s %s %s --log-file %s' % (servport, sor, ds, logloc)
+        # shell required to run the command properly
         p1 = subprocess.Popen(lcremlg, shell=True).wait()
         print(p1)
         time.sleep(1)
@@ -60,6 +61,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
         ds = '%s@%s:%s' % (usn, remserv, des)
         lcremnl = 'rsync -avv --port=%s %s %s' % (servport, sor, ds)
+        # shell required to run the command properly
         p1 = subprocess.Popen(lcremnl, shell=True).wait()
         print(p1)
         time.sleep(1)
@@ -69,6 +71,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
         se = '%s@%s:%s' % (usn, remserv, sor)
         remlcnl = 'rsync -avv --port=%s %s %s' % (servport, se, des)
+        # shell required to run the command properly
         p1 = subprocess.Popen(remlcnl, shell=True).wait()
         print(p1)
         time.sleep(1)
@@ -81,6 +84,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         {}@{}:{} {} --log-file={}'''.format(servport, usn, remserv, sor, des, logloc))
         se = '%s@%s:%s' % (usn, remserv, sor)
         remlclg = 'rsync -avv --port=%s %s %s > %s' % (servport, se, des, logloc)
+        # shell required to run the command properly
         p1 = subprocess.Popen(remlclg, shell=True).wait()
         print(p1)
         time.sleep(1)
