@@ -8,14 +8,14 @@ import getpass
 import apt
 
 
-# Package for installing apt
+# Package for installing via apt
 def install_apt(pkg_name):
     cache = apt.Cache()
     cache.update()
     pkg = cache[pkg_name]
     pkg.mark_install()
 
-
+# Package for installing via yum
 def install_yum(pkg_name):
     rsync_install = ['yum install %s -y' % (pkg_name)]
     call(rsync_install)
