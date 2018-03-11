@@ -67,7 +67,7 @@ Here's a breakdown of the different config files:
 <li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.</p>
 
 <p>[RemLo] = Local to remote backup
-<li> bkoption = Backup option used to decide if you want logs or not, 1 is logs, 2 is not logs.  You must provide a path for logs if you choose option 1, not neccessary if option 2 is selected.
+<li> bkoption = Backup option used to decide if you want logs or not, 3 is logs, 4 is not logs.  You must provide a path for logs if you choose option 1, not neccessary if option 2 is selected.
 <li> source = directory you want to backup.
 <li> destination = directory you want to backup to.
 <li> log_location = location of log 

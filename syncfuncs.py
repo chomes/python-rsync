@@ -2,6 +2,7 @@
 # Author:chomes@github
 # Defining functions
 import time
+import subprocess
 from subprocess import call
 import configparser
 import getpass
@@ -49,21 +50,27 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         logloc = logloc + "-logfile"
         print('''Starting backup, rsync -avv 'ssh -p {}'
         {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
-        lcrem = ["rsync -avv -e 'ssh -p %s ' %s %s@%s:%s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
-        call(lcrem)
+        ds = '%s@%s:%s' % (usn, remserv, des)
+        lcremlg = 'rsync -avv --port=%s %s %s --log-file %s' % (servport, sor, ds, logloc)
+        p1 = subprocess.Popen(lcremlg, shell=True).wait()
+        print(p1)
         time.sleep(1)
         print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
     elif startbk == 2:
         print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
-        lclremlg = ["rsync -avv -e 'ssh -p %s' %s %s@%s:%s" % (servport, sor, usn, remserv, des)]
-        call(lclremlg)
+        ds = '%s@%s:%s' % (usn, remserv, des)
+        lcremnl = 'rsync -avv --port=%s %s %s' % (servport, sor, ds)
+        p1 = subprocess.Popen(lcremnl, shell=True).wait()
+        print(p1)
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 3:
         print(''' Starting backup, rsync -avv 'ssh -p {}' 
         {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
-        remlcnl = ["rsync -avv -e 'ssh -p %s' %s@%s:%s %s" % (servport, sor, usn, remserv, des)]
-        call(remlcnl)
+        se = '%s@%s:%s' % (usn, remserv, sor)
+        remlcnl = 'rsync -avv --port=%s %s %s' % (servport, se, des)
+        p1 = subprocess.Popen(remlcnl, shell=True).wait()
+        print(p1)
         time.sleep(1)
         print("The backup is now complete!")
     elif startbk == 4:
@@ -71,9 +78,11 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
         logloc = logloc + timestamp
         logloc = logloc + "-logfile"
         print('''Starting backup, rsync -avv 'ssh -p {}'
-        {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
-        remlclg = ["rsync -avv -e 'ssh -p %s ' %s@%s:%s %s --log-file %s" % (servport, sor, usn, remserv, des, logloc)]
-        call(remlclg)
+        {}@{}:{} {} --log-file={}'''.format(servport, usn, remserv, sor, des, logloc))
+        se = '%s@%s:%s' % (usn, remserv, sor)
+        remlclg = 'rsync -avv --port=%s %s %s > %s' % (servport, se, des, logloc)
+        p1 = subprocess.Popen(remlclg, shell=True).wait()
+        print(p1)
         time.sleep(1)
         print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
 
