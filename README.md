@@ -81,5 +81,7 @@ Here's a breakdown of the different config files:
 You can choose between local or remote.  Local is only from one directory to another and remote will let you choose between local to remote or remote to local. </p>
 <p> Each one will provide step by step instructions asking you to confirm each section before going to the next incase you make mistakes and will then run the programme.
 It will also generate a config file with your options before running in the folder where the file is so you can backup automatically in the future.</p>
-
-
+<br>
+<br>
+<br>
+Credit: ryanveach.com for one of his blogs on information about getting rsync remotely working.
