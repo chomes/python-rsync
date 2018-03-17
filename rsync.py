@@ -3,8 +3,8 @@
 # Current version: 1.0
 # Version 1.0 basic rsync with copying locally and remotely.
 # Version 1.1 config addition and automation of script.
-# Future versions:
 # Version 1.2 lock file to stop same backup running, along with a way of telling if the backup is still running.
+# Future versions:
 # Version 1.3 email notification
 # Importing functions
 import syncfuncs

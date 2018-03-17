@@ -4,6 +4,7 @@
 import time
 import subprocess
 from subprocess import call
+from pathlib import Path
 import configparser
 import getpass
 import apt
@@ -24,22 +25,31 @@ def install_yum(pkg_name):
 
 
 # Local sync function
-def sync_call_manual(startbk, sor, des, logloc):
-    if startbk == 1:
-        timestamp = time.strftime("%Y%m%d-%H%M")
-        logloc = logloc + timestamp
-        logloc = logloc + "-logfile"
-        print("Starting backup, rsync -avv {} {} --log-file={}".format(sor, des, logloc))
-        lclresyn = ["rsync", "-avv", sor, des, "--log-file", logloc]
-        call(lclresyn)
-        time.sleep(1)
-        print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-    elif startbk == 2:
-        print("Starting backup, rsync -avv {} {} ".format(sor, des))
-        lclresynnl = ["rsync", "-avv", sor, des]
-        call(lclresynnl)
-        time.sleep(1)
-        print("The backup is now complete!")
+def sync_call_manual(startbk, sor, des, logloc, lock_name):
+    lock_path = lock_name + '.lock'
+    if Path(lock_path).exists():
+        print("Back up is already taking place, exiting program, wait till backup is done")
+        exit()
+    else:
+        if startbk == 1:
+            timestamp = time.strftime("%Y%m%d-%H%M")
+            logloc = logloc + timestamp
+            logloc = logloc + "-logfile"
+            print("Starting backup, rsync -avv {} {} --log-file={}".format(sor, des, logloc))
+            lclresyn = ["rsync", "-avv", sor, des, "--log-file", logloc]
+            Path(lock_path).touch()
+            call(lclresyn)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
+        elif startbk == 2:
+            print("Starting backup, rsync -avv {} {} ".format(sor, des))
+            lclresynnl = ["rsync", "-avv", sor, des]
+            Path(lock_path).touch()
+            call(lclresynnl)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete!")
 
 
 # Function for remote to local & local to remote
@@ -127,7 +137,8 @@ def localsyn():
                 config.write(configfile)
                 configfile.close()
             print("Config file saved. No logs required running backup!")
-            sync_call_manual(startbk, sor, des, logloc)
+            lock_name = Path("config.ini").stem
+            sync_call_manual(startbk, sor, des, logloc, lock_name)
             break
         elif logging == "y":
             logloc = input("Please type the destination of the log: ")
@@ -145,7 +156,8 @@ def localsyn():
                         config.write(configfile)
                         configfile.close()
                     print("Config saved. Ok, lets run the backup!")
-                    sync_call_manual(startbk, sor, des, logloc)
+                    lock_name = Path("config.ini").stem
+                    sync_call_manual(startbk, sor, des, logloc, lock_name)
                     break
                 else:
                     print("Ok, lets change the destination")
