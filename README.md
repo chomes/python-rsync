@@ -6,9 +6,7 @@ I made this as a tool to help develope my python skills but it's a perfectly wor
 
 
 <p><b> Current Version </b></p>
-<p>
-<li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.
-</p>
+<p><li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.</p>
 
 <br>
 <br>
