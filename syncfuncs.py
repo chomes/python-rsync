@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 # Author:chomes@github
 # Defining functions
+# Time used for sleeping
 import time
+# subprocess used for remote backups to run command as shell
 import subprocess
+# call library used for local backup
 from subprocess import call
+# pathlib used for creating lock files and obtaining name of lock file
 from pathlib import Path
+# configparser used for creating and reading configs to run automated backups
 import configparser
+# getpass used for obtaining local username automatically
 import getpass
+# apt used for installing rsync using python
 import apt
 
 
@@ -27,6 +34,7 @@ def install_yum(pkg_name):
 # Local sync function
 def sync_call_manual(startbk, sor, des, logloc, lock_name):
     lock_path = lock_name + '.lock'
+    # if statement if lock exists don't run backup otherwise continue function
     if Path(lock_path).exists():
         print("Back up is already taking place, exiting program, wait till backup is done")
         exit()
@@ -55,6 +63,7 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
 # Function for remote to local & local to remote
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name):
     lock_path = lock_name + '.lock'
+    # if statement if lock exists don't run backup otherwise continue function
     if Path(lock_path).exists():
         print("Back up is already taking place, exiting program, wait till backup is done")
         exit()
