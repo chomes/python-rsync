@@ -53,52 +53,65 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
 
 
 # Function for remote to local & local to remote
-def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc):
-    if startbk == 1:
-        timestamp = time.strftime("%Y%m%d-%H%M")
-        logloc = logloc + timestamp
-        logloc = logloc + "-logfile"
-        print('''Starting backup, rsync -avv 'ssh -p {}'
-        {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
-        ds = '%s@%s:%s' % (usn, remserv, des)
-        lcremlg = 'rsync -avv --port=%s %s %s --log-file %s' % (servport, sor, ds, logloc)
-        # shell required to run the command properly
-        p1 = subprocess.Popen(lcremlg, shell=True).wait()
-        print(p1)
-        time.sleep(1)
-        print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-    elif startbk == 2:
-        print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
-        ds = '%s@%s:%s' % (usn, remserv, des)
-        lcremnl = 'rsync -avv --port=%s %s %s' % (servport, sor, ds)
-        # shell required to run the command properly
-        p1 = subprocess.Popen(lcremnl, shell=True).wait()
-        print(p1)
-        time.sleep(1)
-        print("The backup is now complete!")
-    elif startbk == 3:
-        print(''' Starting backup, rsync -avv 'ssh -p {}' 
-        {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
-        se = '%s@%s:%s' % (usn, remserv, sor)
-        remlcnl = 'rsync -avv --port=%s %s %s' % (servport, se, des)
-        # shell required to run the command properly
-        p1 = subprocess.Popen(remlcnl, shell=True).wait()
-        print(p1)
-        time.sleep(1)
-        print("The backup is now complete!")
-    elif startbk == 4:
-        timestamp = time.strftime("%Y%m%d-%H%M")
-        logloc = logloc + timestamp
-        logloc = logloc + "-logfile"
-        print('''Starting backup, rsync -avv 'ssh -p {}'
-        {}@{}:{} {} --log-file={}'''.format(servport, usn, remserv, sor, des, logloc))
-        se = '%s@%s:%s' % (usn, remserv, sor)
-        remlclg = 'rsync -avv --port=%s %s %s > %s' % (servport, se, des, logloc)
-        # shell required to run the command properly
-        p1 = subprocess.Popen(remlclg, shell=True).wait()
-        print(p1)
-        time.sleep(1)
-        print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
+def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name):
+    lock_path = lock_name + '.lock'
+    if Path(lock_path).exists():
+        print("Back up is already taking place, exiting program, wait till backup is done")
+        exit()
+    else:
+        if startbk == 1:
+            timestamp = time.strftime("%Y%m%d-%H%M")
+            logloc = logloc + timestamp
+            logloc = logloc + "-logfile"
+            print('''Starting backup, rsync -avv 'ssh -p {}'
+            {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
+            ds = '%s@%s:%s' % (usn, remserv, des)
+            lcremlg = 'rsync -avv --port=%s %s %s --log-file %s' % (servport, sor, ds, logloc)
+            Path(lock_path).touch()
+            # shell required to run the command properly
+            p1 = subprocess.Popen(lcremlg, shell=True).wait()
+            print(p1)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
+        elif startbk == 2:
+            print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
+            ds = '%s@%s:%s' % (usn, remserv, des)
+            lcremnl = 'rsync -avv --port=%s %s %s' % (servport, sor, ds)
+            Path(lock_path).touch()
+            # shell required to run the command properly
+            p1 = subprocess.Popen(lcremnl, shell=True).wait()
+            print(p1)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete!")
+        elif startbk == 3:
+            print(''' Starting backup, rsync -avv 'ssh -p {}' 
+            {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
+            se = '%s@%s:%s' % (usn, remserv, sor)
+            remlcnl = 'rsync -avv --port=%s %s %s' % (servport, se, des)
+            Path(lock_path).touch()
+            # shell required to run the command properly
+            p1 = subprocess.Popen(remlcnl, shell=True).wait()
+            print(p1)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete!")
+        elif startbk == 4:
+            timestamp = time.strftime("%Y%m%d-%H%M")
+            logloc = logloc + timestamp
+            logloc = logloc + "-logfile"
+            print('''Starting backup, rsync -avv 'ssh -p {}'
+            {}@{}:{} {} --log-file={}'''.format(servport, usn, remserv, sor, des, logloc))
+            se = '%s@%s:%s' % (usn, remserv, sor)
+            remlclg = 'rsync -avv --port=%s %s %s > %s' % (servport, se, des, logloc)
+            Path(lock_path).touch()
+            # shell required to run the command properly
+            p1 = subprocess.Popen(remlclg, shell=True).wait()
+            print(p1)
+            time.sleep(1)
+            Path(lock_path).unlink()
+            print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
 
 
 # Creating manual backup of local copy
@@ -229,7 +242,8 @@ def localrem():
                 config.write(configfile)
                 configfile.close()
             print("Config saved.  No logs required running backup!")
-            sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+            lock_name = Path("config.ini").stem
+            sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
             break
         elif logging == "y":
             logloc = input("Please type the destination of the log: ")
@@ -250,7 +264,8 @@ def localrem():
                         config.write(configfile)
                         configfile.close()
                     print("Config saved.  Ok lets run the backup!")
-                    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+                    lock_name = Path("config.ini").stem
+                    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
                     break
                 else:
                     print("Ok, lets change the destination")
@@ -322,7 +337,8 @@ def remlocal():
                 config.write(configfile)
                 configfile.close()
             print("Config saved.  Ok lets run the backup!")
-            sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+            lock_name = Path("config.ini").stem
+            sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
             break
         elif logging == "y":
             logloc = input("Please type the destination of the log: ")
@@ -343,7 +359,8 @@ def remlocal():
                         config.write(configfile)
                         configfile.close()
                     print("Config saved.  Ok lets run the backup!")
-                    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+                    lock_name = Path("config.ini").stem
+                    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
                     break
                 else:
                     print("Ok, lets change the destination")
@@ -366,7 +383,8 @@ def lsyauto():
     des = config.get("Manual", "destination")
     logloc = config.get("Manual", "log_location")
     print("Running backup from {} to {}".format(sor, des))
-    sync_call_manual(startbk, sor, des, logloc)
+    lock_name = Path("config.ini").stem
+    sync_call_manual(startbk, sor, des, logloc, lock_name)
 
 
 # Automated backup for local to remote
@@ -385,7 +403,8 @@ def loreauto():
     remserv = config.get("LoRem", "remote_server")
     servport = config.get("LoRem", "server_port")
     print("Running backup")
-    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+    lock_name = Path("config.ini").stem
+    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
 
 
 # Automated backup for remote to local
@@ -404,4 +423,5 @@ def reloauto():
     remserv = config.get("RemLo", "remote_server")
     servport = config.get("RemLo", "server_port")
     print("Running backup")
-    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc)
+    lock_name = Path("config.ini").stem
+    sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name)
