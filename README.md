@@ -6,20 +6,20 @@ I made this as a tool to help develope my python skills but it's a perfectly wor
 
 
 <p><b> Current Version </b></p>
-<p><li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.</p>
+<p><li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.
 
 <br>
 <br>
 <b> What works </b>
 <p> <li> Copying files locally from one folder to another folder/internal hd
 <li> Copying from local to another host
-<li> Copying from a host to a local server </p>
+<li> Copying from a host to a local server 
 <br>
 <br>
 <b> What doesn't work </b>
 <p> <li> exclude directories
 <li> automated rsync backups via config file
-<li> Arguments </p>
+<li> Arguments
 <br>
 <br>
 <b> Versions Released </b>
@@ -52,8 +52,7 @@ Here's a breakdown of the different config files:
 <li> bkoption = Backup option used to decide if you want logs or not, 1 is logs, 2 is not logs.  You must provide a path for logs if you choose option 1, not neccessary if option 2 is selected.
 <li> source = directory you want to backup.
 <li> destination = location you want to backup to.
-<li> log_location = location of log </p>
-
+<li> log_location = location of log 
 <p>[LoRem] = Local to remote backup
 <li> bkoption = Backup option used to decide if you want logs or not, 1 is logs, 2 is not logs.  You must provide a path for logs if you choose option 1, not neccessary if option 2 is selected.
 <li> source = directory you want to backup.
@@ -61,7 +60,7 @@ Here's a breakdown of the different config files:
 <li> log_location = location of log 
 <li> username = username to connect to the remote server 
 <li> remote_server = server you're backing up to
-<li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.</p>
+<li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.
 
 <p>[RemLo] = Local to remote backup
 <li> bkoption = Backup option used to decide if you want logs or not, 3 is logs, 4 is not logs.  You must provide a path for logs if you choose option 1, not neccessary if option 2 is selected.
@@ -70,7 +69,7 @@ Here's a breakdown of the different config files:
 <li> log_location = location of log 
 <li> username = username to connect to the remote server 
 <li> remote_server = server you're backing up to
-<li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.</p>
+<li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.
 <br>
 <br>
 <b> Manual Version </b>
