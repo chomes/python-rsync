@@ -31,8 +31,9 @@ I made this as a tool to help develope my python skills but it's a perfectly wor
 <br>
 <br>
 <li> Version 1.3 - Email notifications of when backups are done that include log file
-<li> Version 1.3a - Some type of notification letting people know the backup is still on-going
+<li> Version 1.4 - Some type of notification letting people know the backup is still on-going
  so it doesn't require checking regularly.
+<li> Version 1.5 - Revamp of script to make configs based on clients using arg parse
 
 <h3> Instructions </h3>
 <p> For the first time run, if you haven't installed rsync before the programme can do this for you, however you need to run it as sudo for the first run for it to do this. It will check your system if rsync exists, if it doesn't it will then install it.
@@ -80,4 +81,7 @@ It will also generate a config file with your options before running in the fold
 <br>
 <br>
 <br>
-Credit: ryanveach.com for one of his blogs on information about getting rsync remotely working.
+Credit: 
+
+<li> ryanveach.com for one of his blogs on information about getting rsync remotely working.
+<li> pyinstaller for the ability to make binary files of the script.
