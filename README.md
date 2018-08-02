@@ -85,3 +85,4 @@ Credit:
 
 <li> ryanveach.com for one of his blogs on information about getting rsync remotely working.
 <li> pyinstaller for the ability to make binary files of the script.
+<li> nelsshiab.com for the email python tutorial
