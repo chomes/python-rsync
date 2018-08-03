@@ -46,6 +46,7 @@ def send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, ema
 def backup_start():
     config = configparser.ConfigParser()
     config.read('email_config.ini')
+    # Begin importing variables
     username = config.get("server_details", "username")
     passwd = config.get("server_details", "password")
     from_addr = config.get("server_details", "from_addr")
@@ -53,8 +54,12 @@ def backup_start():
     port = config.get("server_details", "port")
     smtp_server = config.get("server_details", "server")
     ssl_tls = config.get("server_details", "ssl_tls")
+    # If value doesn't exit for port, default to 25 for sending mail
     if not port:
         port = 25
+    # Converting port into an integer otherwise it would just be a value
+    port = int(port)
+    # Creating multipart message to send
     msg = MIMEMultipart()
     msg['From'] = from_addr
     msg['To'] = to_addr
@@ -62,22 +67,24 @@ def backup_start():
     body = "The backup is now taking place, we will send you a notification once it's done"
     msg.attach(MIMEText(body, 'plain'))
     email_msg = msg.as_string()
+    # If statement based on config file conditions will send email secure/unsecure with/without auth
     if config.get("server_details", "auth") == "no":
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure_no_auth(from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
     else:
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure(username, passwd, from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
 
 
 # Function for sending email for completion
 def backup_completed():
     config = configparser.ConfigParser()
     config.read('email_config.ini')
+    # Importing variables
     username = config.get("server_details", "username")
     passwd = config.get("server_details", "password")
     from_addr = config.get("server_details", "from_addr")
@@ -85,31 +92,37 @@ def backup_completed():
     port = config.get("server_details", "port")
     smtp_server = config.get("server_details", "server")
     ssl_tls = config.get("server_details", "ssl_tls")
+    # If value doesn't exit for port, default to 25 for sending mail
     if not port:
         port = 25
+    # Converting port into an integer otherwise it would just be a value
+    port = int(port)
+    # Creating multipart message to send
     msg = MIMEMultipart()
     msg['From'] = from_addr
     msg['To'] = to_addr
-    msg['Subject'] = "Backup commencing"
+    msg['Subject'] = "Backup is complete"
     body = "The backup is now done, the logs are on the server in the folder of the script"
     msg.attach(MIMEText(body, 'plain'))
     email_msg = msg.as_string()
+    # If statement based on config file conditions will send email secure/unsecure with/without auth
     if config.get("server_details", "auth") == "no":
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure_no_auth(from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
     else:
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure(username, passwd, from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
 
 
 # Function for sending email for work in progress
 def backup_in_progress():
     config = configparser.ConfigParser()
     config.read('email_config.ini')
+    # Importing variables
     username = config.get("server_details", "username")
     passwd = config.get("server_details", "password")
     from_addr = config.get("server_details", "from_addr")
@@ -117,22 +130,27 @@ def backup_in_progress():
     port = config.get("server_details", "port")
     smtp_server = config.get("server_details", "server")
     ssl_tls = config.get("server_details", "ssl_tls")
+    # If value doesn't exit for port, default to 25 for sending mail
     if not port:
         port = 25
+    # Converting port into an integer otherwise it would just be a value
+    port = int(port)
+    # Creating multipart message to send
     msg = MIMEMultipart()
     msg['From'] = from_addr
     msg['To'] = to_addr
-    msg['Subject'] = "Backup commencing"
+    msg['Subject'] = "Backup is in progress"
     body = "The backup is in progress, please wait for completion before continuing"
     msg.attach(MIMEText(body, 'plain'))
     email_msg = msg.as_string()
+    # If statement based on config file conditions will send email secure/unsecure with/without auth
     if config.get("server_details", "auth") == "no":
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure_no_auth(from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
     else:
         if config.get("server_details", "secure") == "no":
             send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
         else:
-            send_mail_secure(username, passwd, from_addr, to_addr, port, ssl_tls, smtp_server, email_msg)
+            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)

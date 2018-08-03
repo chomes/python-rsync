@@ -81,6 +81,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             logloc = logloc + "-logfile"
             print('''Starting backup, rsync -avv 'ssh -p {}'
             {} {}@{}:{} --log-file={}'''.format(servport, sor, usn, remserv, des, logloc))
+            email_funcs.backup_start()
             ds = '%s@%s:%s' % (usn, remserv, des)
             lcremlg = 'rsync -avv --port=%s %s %s --log-file %s' % (servport, sor, ds, logloc)
             Path(lock_path).touch()
@@ -90,6 +91,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
+            email_funcs.backup_completed()
         elif startbk == 2:
             print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
             email_funcs.backup_start()
@@ -106,6 +108,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
         elif startbk == 3:
             print(''' Starting backup, rsync -avv 'ssh -p {}' 
             {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
+            email_funcs.backup_start()
             se = '%s@%s:%s' % (usn, remserv, sor)
             remlcnl = 'rsync -avv --port=%s %s %s' % (servport, se, des)
             Path(lock_path).touch()
@@ -115,12 +118,14 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete!")
+            email_funcs.backup_completed()
         elif startbk == 4:
             timestamp = time.strftime("%Y%m%d-%H%M")
             logloc = logloc + timestamp
             logloc = logloc + "-logfile"
             print('''Starting backup, rsync -avv 'ssh -p {}'
             {}@{}:{} {} --log-file={}'''.format(servport, usn, remserv, sor, des, logloc))
+            email_funcs.backup_start()
             se = '%s@%s:%s' % (usn, remserv, sor)
             remlclg = 'rsync -avv --port=%s %s %s > %s' % (servport, se, des, logloc)
             Path(lock_path).touch()
@@ -130,6 +135,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
+            email_funcs.backup_completed()
 
 
 # Creating manual backup of local copy

@@ -4,10 +4,8 @@ Python rsync is a tool to back up files locally and remotely from your computer.
 <br>
 I made this as a tool to help develope my python skills but it's a perfectly working script that will do what you need.
 
-
 <p><b> Current Version </b></p>
-<p><li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.
-
+<p><li> Version 1.3 - Email notifications of when backups are done that include log file</p>
 <br>
 <br>
 <b> What works </b>
@@ -26,11 +24,11 @@ I made this as a tool to help develope my python skills but it's a perfectly wor
 <br>
 <li> Version 1.0 - Basic functions of local to local, local to remote server & remote to local backup
 <br>
+<li> Version 1.2 - Provide some type of locking system to stop new backups from running in it's place.
 <br>
 <b> Future versions in progress </b>
 <br>
 <br>
-<li> Version 1.3 - Email notifications of when backups are done that include log file
 <li> Version 1.4 - Some type of notification letting people know the backup is still on-going
  so it doesn't require checking regularly.
 <li> Version 1.5 - Revamp of script to make configs based on clients using arg parse
