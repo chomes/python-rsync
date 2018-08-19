@@ -54,7 +54,8 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            email_funcs.backup_completed()
+            logloc = Path(logloc).stem
+            email_funcs.backup_completed(logloc)
         elif startbk == 2:
             print("Starting backup, rsync -avv {} {} ".format(sor, des))
             email_funcs.backup_start()
@@ -64,7 +65,7 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete!")
-            email_funcs.backup_completed()
+            email_funcs.backup_completed(log_loc=None)
 
 
 # Function for remote to local & local to remote
@@ -91,7 +92,8 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            email_funcs.backup_completed()
+            logloc = Path(logloc).stem
+            email_funcs.backup_completed(logloc)
         elif startbk == 2:
             print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
             email_funcs.backup_start()
@@ -104,7 +106,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete!")
-            email_funcs.backup_completed()
+            email_funcs.backup_completed(log_loc=None)
         elif startbk == 3:
             print(''' Starting backup, rsync -avv 'ssh -p {}' 
             {}@{}:{} {}'''.format(servport, sor, usn, remserv, des))
@@ -118,7 +120,7 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete!")
-            email_funcs.backup_completed()
+            email_funcs.backup_completed(log_loc=None)
         elif startbk == 4:
             timestamp = time.strftime("%Y%m%d-%H%M")
             logloc = logloc + timestamp
@@ -135,7 +137,8 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            email_funcs.backup_completed()
+            logloc = Path(logloc).stem
+            email_funcs.backup_completed(logloc)
 
 
 # Creating manual backup of local copy
