@@ -5,7 +5,7 @@ Python rsync is a tool to back up files locally and remotely from your computer.
 I made this as a tool to help develope my python skills but it's a perfectly working script that will do what you need.
 
 <p><b> Current Version </b></p>
-<p><li> Version 1.3 - Email notifications of when backups are done that include log file</p>
+<p><li> Version 1.3 - Email notifications of when backups are done and include the log file</p>
 <br>
 <br>
 <b> What works </b>
@@ -71,6 +71,19 @@ Here's a breakdown of the different config files:
 <li> server_port = ssh port to connect, if it's the standard 22 leave as the default in config otherwise change, leaving it blank will stop the backup from running.
 <br>
 <br>
+
+<b> Email Configuration </b>
+<li> server = Your mail server, even if it's the one running the config just put in localhost or a short name, don't use an ip address.
+<li> security = yes/no this is to confirm if it requires ssl or tls, if no there will be no encryption.
+<li> ssl_tls = ssl/tls choose which one you need to send emails.
+<li> port = If you leave this empty the script will automatically make it port 25.
+<li> auth = yes/no to decide if you need authentication to send emails or not.
+<li> username = If you selected authentication put in the username to send emails.
+<li> password = If you selected authentication put in the password to send emails.
+<li> to_addr = The email address you're sending the emails to.
+<li> from_addr = The email address you're sending the emails from.
+<br>
+<br>
 <b> Manual Version </b>
 <p> If no config file is present when running the programme then software will result to a manual version of the programme asking you to choose what type of backup you want to do.
 You can choose between local or remote.  Local is only from one directory to another and remote will let you choose between local to remote or remote to local. </p>
@@ -84,3 +97,4 @@ Credit:
 <li> ryanveach.com for one of his blogs on information about getting rsync remotely working.
 <li> pyinstaller for the ability to make binary files of the script.
 <li> nelsshiab.com for the email python tutorial
+<li> Stackoverflow site for help on email attachments

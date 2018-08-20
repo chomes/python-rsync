@@ -6,7 +6,7 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-import email.encoders
+from email.encoders import encode_base64
 import email.header
 import configparser
 
@@ -65,9 +65,11 @@ def backup_start():
     msg['From'] = from_addr
     msg['To'] = to_addr
     msg['Subject'] = "Backup commencing"
+    # Message header used to make the email more legit in email servers eyes.
     msg['Message-ID'] = email.header.Header(email.utils.make_msgid())
     body = "The backup is now taking place, we will send you a notification once it's done"
     msg.attach(MIMEText(body, 'plain'))
+    # Moved this to the end as it wasn't adding the attachment otherwise.
     email_msg = msg.as_string()
     # If statement based on config file conditions will send email secure/unsecure with/without auth
     if config.get("server_details", "auth") == "no":
@@ -104,13 +106,13 @@ def backup_completed(log_loc):
     msg['Message-ID'] = email.header.Header(email.utils.make_msgid())
     body = "The backup is now done, if you requested logs, they will be attached in this email!"
     msg.attach(MIMEText(body, 'plain'))
-    email_msg = msg.as_string()
     if log_loc is not None:
         part = MIMEBase('application', "octet-stream")
         part.set_payload(open(log_loc, "rb").read())
-        email.encoders.encode_base64(part)
+        encode_base64(part)
         part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(log_loc))
         msg.attach(part)
+    email_msg = msg.as_string()
     # If statement based on config file conditions will send email secure/unsecure with/without auth
     if config.get("server_details", "auth") == "no":
         if config.get("server_details", "secure") == "no":
