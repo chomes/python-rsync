@@ -25,6 +25,7 @@ def install_apt(pkg_name):
     cache.update()
     pkg = cache[pkg_name]
     pkg.mark_install()
+    cache.commit()
 
 
 # Function for yum install of package
