@@ -21,6 +21,9 @@ import email_funcs
 
 # Function for apt install of package
 def install_apt(pkg_name):
+    """Installing package using apt library, requires arg in function call
+    e.g: rsync = "rsync" install_apt(rsync)
+    """
     cache = apt.Cache()
     cache.update()
     pkg = cache[pkg_name]
@@ -30,12 +33,22 @@ def install_apt(pkg_name):
 
 # Function for yum install of package
 def install_yum(pkg_name):
+    """Installing package using call method for yum installs, must provide arg in function.
+    eg: rsync = "rsync install_yum(rsync)
+    """
     rsync_install = ["yum", "install", pkg_name, "-y"]
     call(rsync_install)
 
 
 # Local sync function
 def sync_call_manual(startbk, sor, des, logloc, lock_name):
+    """ Function to run rsync inside the server from one folder to another, requires multiple arguments in function to run.
+    startbk is either 1 or 2 to determine if you want a log or not
+    sor is the source of the folder you want to copy
+    des is the destination of the folder you want to copy
+    logloc is the location of the log file if it exists
+    lock_name is the shortened name of the config file for the backup
+    """
     lock_path = lock_name + '.lock'
     # if statement if lock exists don't run backup otherwise continue function
     if Path(lock_path).exists():
@@ -70,6 +83,16 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
 
 # Function for remote to local & local to remote
 def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name):
+    """Function to run rsync from the local server to a remote one for backup purposes, requires arguments to run.
+    It also is the same function from remote to local server depending on what startbk number is
+    startbk is 1-4 determining if it's local > remote or remote > local along with if you want logs or not.
+    sor is the source of the folder you want to copy
+    des is the destination of the folder you want to copy
+    usn is the username for the remote server
+    remserv is the hostname for the server, must be a name the local server can resolve to for this to work
+    logloc is the location of the log file if it exists
+    lock_name is the shortened name of the config file for the backup
+    """
     lock_path = lock_name + '.lock'
     # if statement if lock exists don't run backup otherwise continue function
     if Path(lock_path).exists():
@@ -141,6 +164,9 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
 
 # Creating manual backup of local copy
 def localsyn():
+    """This function goes through the process of creating a local backup if you don't have a config file,
+     requires no arguments.
+     """
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to backup? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
@@ -207,6 +233,9 @@ def localsyn():
 
 # local to remote server backup
 def localrem():
+    """Function to go through the set up process of creating a backup if config is provided for local to remote server.
+    No arg required
+    """
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to backup? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
@@ -302,6 +331,9 @@ def localrem():
 
 # remote to local server backup
 def remlocal():
+    """Function for a step by stepp process of creating a remote to local backup if no config is provided,
+    no arg required.
+    """
     print("Now we will choose the source and destination")
     sor = input("What is the FULL PATH to the directory you want to copy from? ")
     des = input("What is the FULL PATH to the directory you want to copy to? ")
@@ -397,6 +429,7 @@ def remlocal():
 
 # Automated backup for local
 def lsyauto():
+    """Function for running an automated local to local backup, no arg required, reads the config provided"""
     print("Reading config")
     config = configparser.ConfigParser()
     config.read("config.ini")
@@ -414,6 +447,7 @@ def lsyauto():
 
 # Automated backup for local to remote
 def loreauto():
+    """Function for running an automated local to remote backup, no arg required, reads the config provided"""
     print("Reading config")
     config = configparser.ConfigParser()
     config.read("config.ini")
@@ -434,6 +468,7 @@ def loreauto():
 
 # Automated backup for remote to local
 def reloauto():
+    """Function for running an automated local to remote backup, no arg required, reads the config provided"""
     print("Reading config")
     config = configparser.ConfigParser()
     config.read("config.ini")

@@ -13,6 +13,15 @@ import configparser
 
 # Separate functions created for sending emails to make it more modular and to allow multiple functions to re-use it.
 def send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg):
+    """Function for sending emails unsecurely without any SSL or TLS, requires multiple args to pass:
+    username = Username required for sending e-mails
+    passwd = password used for sending emails
+    from_addr = from e-mail address
+    to_addr = where the e-mail is going to
+    port = SMTP port for the server
+    smtp_server = hostname for the server, must resolve on the local server for the e-mail to send
+    email_msg = E-mail message to the server you plan to send to the user, use the other functions to compose it with
+    attachments or no attachments"""
     server = smtplib.SMTP(smtp_server, port)
     server.login(username, passwd)
     server.sendmail(from_addr, to_addr, email_msg)

@@ -6,9 +6,10 @@
 # Version 1.2 lock file to stop same backup running, along with a way of telling if the backup is still running.
 # Version 1.3 email notification
 # Future versions:
-## Version 1.4 arg parse arguments to allow crons to check periodically if the script is still running
-## Version 1.5 Revamp of script to make configs based on clients using arg parse
+# Version 1.4 arg parse arguments to allow crons to check periodically if the script is still running
+# Version 1.5 Revamp of script to make configs based on clients using arg parse
 # Learning: Try and use dictionaries in script if possible for learning.
+
 # Importing functions
 import syncfuncs
 from shutil import which
