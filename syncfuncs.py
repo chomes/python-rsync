@@ -55,7 +55,6 @@ def sync_call_manual(startbk, sor, des, logloc, lock_name):
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            logloc = Path(logloc).stem
             email_funcs.backup_completed(logloc)
         elif startbk == 2:
             print("Starting backup, rsync -avv {} {} ".format(sor, des))
@@ -93,7 +92,6 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            logloc = Path(logloc).stem
             email_funcs.backup_completed(logloc)
         elif startbk == 2:
             print("Starting backup, rsync -avv 'ssh -p {}' {} {}@{}:{}".format(servport, sor, usn, remserv, des))
@@ -138,7 +136,6 @@ def sync_call_lorem(startbk, sor, des, usn, remserv, servport, logloc, lock_name
             time.sleep(1)
             Path(lock_path).unlink()
             print("The backup is now complete! Check the logs at {} for details on what was backed up".format(logloc))
-            logloc = Path(logloc).stem
             email_funcs.backup_completed(logloc)
 
 
