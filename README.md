@@ -4,6 +4,12 @@ Python rsync is a tool to back up files locally and remotely from your computer.
 <br>
 I made this as a tool to help develope my python skills but it's a perfectly working script that will do what you need.
 
+<b> What this is: </b>
+A python script that wraps rsync programme on linux to copy files to and from servers.
+
+<b> What this isn't: </b>
+A stand alone rsync programme built in python that can be used on other distros besides Linux.
+
 <p><b> Current Version </b></p>
 <p><li> Version 1.3 - Email notifications of when backups are done and include the log file</p>
 <br>
