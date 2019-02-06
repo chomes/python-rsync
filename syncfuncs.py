@@ -42,7 +42,8 @@ def install_yum(pkg_name):
 
 # Local sync function
 def sync_call_manual(startbk, sor, des, logloc, lock_name):
-    """ Function to run rsync inside the server from one folder to another, requires multiple arguments in function to run.
+    """ Function to run rsync inside the server from one folder to another, requires multiple arguments in function to
+     run.
     startbk is either 1 or 2 to determine if you want a log or not
     sor is the source of the folder you want to copy
     des is the destination of the folder you want to copy
