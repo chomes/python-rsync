@@ -11,7 +11,7 @@
 # Learning: Try and use dictionaries in script if possible for learning.
 
 # Importing functions
-import syncfuncs
+from mods import syncfuncs
 from shutil import which
 from pathlib import Path
 import configparser

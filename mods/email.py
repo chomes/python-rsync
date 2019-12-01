@@ -7,8 +7,27 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
-import email.header
-import configparser
+from email.header import Header
+import email.utils
+from configparser import ConfigParser
+
+
+class EmailClient:
+    def __init__(self, config):
+        conf = ConfigParser()
+        conf.read(config)
+        email_dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
+        self.mail_server = email_dict["server"]
+        self.port = email_dict["port"]
+        self.auth_check = email_dict["auth"]
+        self.security = email_dict["security"]
+        self.auth_user = email_dict["username"]
+        self.auth_password = email_dict["password"]
+        self.to_addr = email_dict["to_addr"]
+        self.from_addr = email_dict["from_addr"]
+        self.header = Header(email.utils.make_msgid(domain=self.from_addr.rsplit("@")[-1]))
+
+
 
 
 # Separate functions created for sending emails to make it more modular and to allow multiple functions to re-use it.
