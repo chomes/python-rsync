@@ -3,20 +3,16 @@
 # Defining functions
 # Time used for sleeping
 import time
-# subprocess used for remote backups to run command as shell
-import subprocess
-# call library used for local backup
-from subprocess import call
-# pathlib used for creating lock files and obtaining name of lock file
+from subprocess import Popen
 from pathlib import Path
-# configparser used for creating and reading configs to run automated backups
-import configparser
-# getpass used for obtaining local username automatically
+from configparser import ConfigParser
 import getpass
-# apt used for installing rsync using python
-import apt
-# email functions created for sending mail
-from mods import email_funcs
+from mods.email import EmailClient
+
+
+class RsyncClient:
+    def __init__(self, file):
+        self.sor
 
 
 # Function for apt install of package
