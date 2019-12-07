@@ -13,178 +13,91 @@ from configparser import ConfigParser
 
 
 class EmailClient:
+    """
+    EmailClient class is used to manage email content for sending emails for notifications
+    """
     def __init__(self, config):
+        """
+        the __init__ intialises the class and requires one parameter to operate
+        :param config: The config can take several arguments but only requires a few:
+        * email_server - Name of the mail server you will be using
+        * port - Leave this blank if it's 25
+        * to_addr - The email address it's going to
+        * from_addr - The email address it's coming from
+        Non required vars but should be added if you need it:
+        - security - set this to ssl or tls if you use it otherwise leave blank
+        - auth - set to yes and fill in the following
+        - username - username required to send emails
+        - password - password required to send emails
+        """
         conf = ConfigParser()
         conf.read(config)
         email_dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
         self.mail_server = email_dict["server"]
-        self.port = email_dict["port"]
+        self.port = 25 if not email_dict["port"] else int(email_dict["port"])
         self.auth_check = email_dict["auth"]
         self.security = email_dict["security"]
         self.auth_user = email_dict["username"]
         self.auth_password = email_dict["password"]
         self.to_addr = email_dict["to_addr"]
         self.from_addr = email_dict["from_addr"]
-        self.header = Header(email.utils.make_msgid(domain=self.from_addr.rsplit("@")[-1]))
+        self.msgid = Header(email.utils.make_msgid(domain=self.from_addr.rsplit("@")[-1]))
 
-
-
-
-# Separate functions created for sending emails to make it more modular and to allow multiple functions to re-use it.
-def send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg):
-    """Function for sending emails unsecurely without any SSL or TLS, requires multiple args to pass:
-    username = Username required for sending e-mails
-    passwd = password used for sending emails
-    from_addr = from e-mail address
-    to_addr = where the e-mail is going to
-    port = SMTP port for the server
-    smtp_server = hostname for the server, must resolve on the local server for the e-mail to send
-    email_msg = E-mail message to the server you plan to send to the user, use the other functions to compose it with
-    attachments or no attachments"""
-    server = smtplib.SMTP(smtp_server, port)
-    server.login(username, passwd)
-    server.sendmail(from_addr, to_addr, email_msg)
-    server.quit()
-
-
-def send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg):
-    server = smtplib.SMTP(smtp_server, port)
-    server.sendmail(from_addr, to_addr, email_msg)
-    server.quit()
-
-
-def send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg):
-    if ssl_tls == "ssl":
-        server = smtplib.SMTP_SSL(smtp_server, port)
-    else:
-        server = smtplib.SMTP(smtp_server, port)
-        server.starttls()
-    server.login(username, passwd)
-    server.sendmail(from_addr, to_addr, email_msg)
-    server.quit()
-
-
-def send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg):
-    if ssl_tls == "ssl":
-        server = smtplib.SMTP_SSL(smtp_server, port)
-    else:
-        server = smtplib.SMTP(smtp_server, port)
-        server.starttls()
-    server.sendmail(from_addr, to_addr, email_msg)
-    server.quit()
-
-
-# Function for sending email for starting backup
-def backup_start():
-    config = configparser.ConfigParser()
-    config.read('email_config.ini')
-    # Begin importing variables
-    username = config.get("server_details", "username")
-    passwd = config.get("server_details", "password")
-    from_addr = config.get("server_details", "from_addr")
-    to_addr = config.get("server_details", "to_addr")
-    port = config.get("server_details", "port")
-    smtp_server = config.get("server_details", "server")
-    ssl_tls = config.get("server_details", "ssl_tls")
-    # If value doesn't exit for port, default to 25 for sending mail else it will make the value of port an integer
-    port = 25 if not port else int(port)
-    # Creating multipart message to send
-    msg = MIMEMultipart()
-    msg['From'] = from_addr
-    msg['To'] = to_addr
-    msg['Subject'] = "Backup commencing"
-    # Message header used to make the email more legit in email servers eyes.
-    msg['Message-ID'] = email.header.Header(email.utils.make_msgid())
-    body = "The backup is now taking place, we will send you a notification once it's done"
-    msg.attach(MIMEText(body, 'plain'))
-    # Moved this to the end as it wasn't adding the attachment otherwise.
-    email_msg = msg.as_string()
-    # If statement based on config file conditions will send email secure/unsecure with/without auth
-    if config.get("server_details", "auth") == "no":
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
+    # Method for sending emails
+    def send_mail(self, msg, auth=None, security=None):
+        """
+        Method used to send emails out.
+        :param msg: Use the self.msg composer in the parameter field for this
+        :param auth: If it doesn't require authentication leave this blank
+        :param security: if this doesn't require security leave this blank
+        :return: message if successful or unsuccessful response with a return value of the server object
+        """
+        # Checking for security
+        if security == "ssl":
+            server = smtplib.SMTP_SSL(self.mail_server, self.port)
+        elif security == "tls":
+            server = smtplib.SMTP(self.mail_server, self.port)
+            server.starttls()
         else:
-            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
-    else:
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
-        else:
-            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
+            server = smtplib.SMTP(self.mail_server, self.port)
+        # Checking for authentication
+        if auth:
+            server.login(self.auth_user, self.auth_password)
+        server.send_message(msg, self.from_addr, self.to_addr)
+        server.quit()
+        print("Email sent")
 
-
-# Function for sending email for completion variable for if log_loc = None then will not attach email
-def backup_completed(log_loc):
-    config = configparser.ConfigParser()
-    config.read('email_config.ini')
-    # Importing variables
-    username = config.get("server_details", "username")
-    passwd = config.get("server_details", "password")
-    from_addr = config.get("server_details", "from_addr")
-    to_addr = config.get("server_details", "to_addr")
-    port = config.get("server_details", "port")
-    smtp_server = config.get("server_details", "server")
-    ssl_tls = config.get("server_details", "ssl_tls")
-    # If value doesn't exit for port, default to 25 for sending mail else it will make the value of port an integer
-    port = 25 if not port else int(port)
-    # Creating multipart message to send
-    msg = MIMEMultipart()
-    msg['From'] = from_addr
-    msg['To'] = to_addr
-    msg['Subject'] = "Backup is complete"
-    msg['Message-ID'] = email.header.Header(email.utils.make_msgid())
-    body = "The backup is now done, if you requested logs, they will be attached in this email!"
-    msg.attach(MIMEText(body, 'plain'))
-    if log_loc is not None:
-        part = MIMEBase('application', "octet-stream")
-        part.set_payload(open(log_loc, "rb").read())
-        encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(log_loc))
-        msg.attach(part)
-    email_msg = msg.as_string()
-    # If statement based on config file conditions will send email secure/unsecure with/without auth
-    if config.get("server_details", "auth") == "no":
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
-        else:
-            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
-    else:
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
-        else:
-            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
-
-
-# Function for sending email for work in progress
-def backup_in_progress():
-    config = configparser.ConfigParser()
-    config.read('email_config.ini')
-    # Importing variables
-    username = config.get("server_details", "username")
-    passwd = config.get("server_details", "password")
-    from_addr = config.get("server_details", "from_addr")
-    to_addr = config.get("server_details", "to_addr")
-    port = config.get("server_details", "port")
-    smtp_server = config.get("server_details", "server")
-    ssl_tls = config.get("server_details", "ssl_tls")
-    # If value doesn't exit for port, default to 25 for sending mail else it will make the value of port an integer
-    port = 25 if not port else int(port)
-    # Creating multipart message to send
-    msg = MIMEMultipart()
-    msg['From'] = from_addr
-    msg['To'] = to_addr
-    msg['Subject'] = "Backup is in progress"
-    msg['Message-ID'] = email.header.Header(email.utils.make_msgid())
-    body = "The backup is in progress, please wait for completion before continuing"
-    msg.attach(MIMEText(body, 'plain'))
-    email_msg = msg.as_string()
-    # If statement based on config file conditions will send email secure/unsecure with/without auth
-    if config.get("server_details", "auth") == "no":
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure_no_auth(from_addr, to_addr, port, smtp_server, email_msg)
-        else:
-            send_mail_secure_no_auth(from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
-    else:
-        if config.get("server_details", "secure") == "no":
-            send_mail_unsecure(username, passwd, from_addr, to_addr, port, smtp_server, email_msg)
-        else:
-            send_mail_secure(username, passwd, from_addr, to_addr, ssl_tls, port, smtp_server, email_msg)
+    # Method for composing email message
+    def compose_message(self, action, logs=None):
+        """
+        Method is used to compose message to send emails out
+        :param action: This is three things: start, stop, running
+        :param logs: Set to none by default, otherwise this is the location of the logs
+        :return: composed mime message
+        """
+        msg = MIMEMultipart()
+        msg['From'] = self.from_addr
+        msg['To'] = self.to_addr
+        body = None
+        if action == "start":
+            msg['Subject'] = "Backup commencing"
+            body = "The backup is now taking place, we will send you a notification once it's done"
+        elif action == "running":
+            msg['Subject'] = "Running"
+            body = "The previous backup is still running so you can't run another, we'll notify you when it's finished"
+        elif action == "stop":
+            msg['Subject'] = "Backup finished"
+            if logs:
+                part = MIMEBase('application', "octet-stream")
+                with open(logs, "rb") as file:
+                    part.set_payload(file.read())
+                    encode_base64(part)
+                    part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(logs))
+                    msg.attach(part)
+                body = "The backup is now completed, you can view the logs of the backup which is attacked in the email"
+            else:
+                body = "The backup is now completed"
+        msg['Message-ID'] = self.msgid
+        msg.attach(MIMEText(body, 'plain'))
+        email_msg = msg.as_string()
+        return email_msg
