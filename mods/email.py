@@ -35,8 +35,8 @@ class EmailClient:
         email_dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
         self.mail_server = email_dict["server"]
         self.port = 25 if not email_dict["port"] else int(email_dict["port"])
-        self.auth_check = email_dict["auth"]
-        self.security = email_dict["security"]
+        self.auth = None if not email_dict["auth"] else email_dict["auth"]
+        self.security = None if not email_dict["security"] else email_dict["security"]
         self.auth_user = email_dict["username"]
         self.auth_password = email_dict["password"]
         self.to_addr = email_dict["to_addr"]

@@ -11,10 +11,10 @@
 # Learning: Try and use dictionaries in script if possible for learning.
 
 # Importing functions
-from mods import syncfuncs
+from mods.sync import RsyncClient
 from shutil import which
 from pathlib import Path
-import configparser
+
 
 # Checking if user has rsync installed
 if which("rsync") is not None:
