@@ -16,7 +16,7 @@ class EmailClient:
     """
     EmailClient class is used to manage email content for sending emails for notifications
     """
-    def __init__(self, config):
+    def __init__(self, config: str):
         """
         the __init__ intialises the class and requires one parameter to operate
         :param config: The config can take several arguments but only requires a few:
@@ -32,16 +32,16 @@ class EmailClient:
         """
         conf = ConfigParser()
         conf.read(config)
-        email_dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
-        self.mail_server = email_dict["server"]
-        self.port = 25 if not email_dict["port"] else int(email_dict["port"])
-        self.auth = None if not email_dict["auth"] else email_dict["auth"]
-        self.security = None if not email_dict["security"] else email_dict["security"]
-        self.auth_user = email_dict["username"]
-        self.auth_password = email_dict["password"]
-        self.to_addr = email_dict["to_addr"]
-        self.from_addr = email_dict["from_addr"]
-        self.msgid = Header(email.utils.make_msgid(domain=self.from_addr.rsplit("@")[-1]))
+        __email_dict: dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
+        self.__mail_server: str = __email_dict["server"]
+        self.__port: int = 25 if not __email_dict["port"] else int(__email_dict["port"])
+        self.__auth: str = None if not __email_dict["auth"] else __email_dict["auth"]
+        self.__security: str = None if not __email_dict["security"] else __email_dict["security"]
+        self.__auth_user: str = __email_dict["username"]
+        self.__auth_password: str = __email_dict["password"]
+        self.__to_addr: str = __email_dict["to_addr"]
+        self.__from_addr: str = __email_dict["from_addr"]
+        self.__msgid: Header = Header(email.utils.make_msgid(domain=self.__from_addr.rsplit("@")[-1]))
 
     # Method for sending emails
     def send_mail(self, msg, auth=None, security=None):
@@ -54,50 +54,52 @@ class EmailClient:
         """
         # Checking for security
         if security == "ssl":
-            server = smtplib.SMTP_SSL(self.mail_server, self.port)
+            __smtp_client: smtplib = smtplib.SMTP_SSL(self.__mail_server, self.__port)
         elif security == "tls":
-            server = smtplib.SMTP(self.mail_server, self.port)
-            server.starttls()
+            __smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
+            __smtp_client.starttls()
         else:
-            server = smtplib.SMTP(self.mail_server, self.port)
+            __smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
         # Checking for authentication
         if auth:
-            server.login(self.auth_user, self.auth_password)
-        server.send_message(msg, self.from_addr, self.to_addr)
-        server.quit()
+            __smtp_client.login(self.__auth_user, self.__auth_password)
+        __smtp_client.send_message(msg, self.__from_addr, self.__to_addr)
+        __smtp_client.quit()
         print("Email sent")
 
     # Method for composing email message
-    def compose_message(self, action, logs=None):
+    def compose_message(self, action: str, logs=None) -> str:
         """
         Method is used to compose message to send emails out
         :param action: This is three things: start, stop, running
         :param logs: Set to none by default, otherwise this is the location of the logs
         :return: composed mime message
         """
-        msg = MIMEMultipart()
-        msg['From'] = self.from_addr
-        msg['To'] = self.to_addr
-        body = None
+        msg: MIMEMultipart = MIMEMultipart()
+        msg['From']: str = self.__from_addr
+        msg['To']: str = self.__to_addr
+        body: str = str()
         if action == "start":
-            msg['Subject'] = "Backup commencing"
-            body = "The backup is now taking place, we will send you a notification once it's done"
+            msg['Subject']: str = "Backup commencing"
+            body: str = "The backup is now taking place, we will send you a notification once it's done"
         elif action == "running":
-            msg['Subject'] = "Running"
-            body = "The previous backup is still running so you can't run another, we'll notify you when it's finished"
+            msg['Subject']: str = "Running"
+            body: str = "The previous backup is still running " \
+                        "so you can't run another, we'll notify you when it's finished"
         elif action == "stop":
-            msg['Subject'] = "Backup finished"
+            msg['Subject']: str = "Backup finished"
             if logs:
-                part = MIMEBase('application', "octet-stream")
+                part: MIMEBase = MIMEBase('application', "octet-stream")
                 with open(logs, "rb") as file:
                     part.set_payload(file.read())
                     encode_base64(part)
                     part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(logs))
                     msg.attach(part)
-                body = "The backup is now completed, you can view the logs of the backup which is attacked in the email"
+                body: str = "The backup is now completed, you can view the " \
+                            "logs of the backup which is attacked in the email"
             else:
-                body = "The backup is now completed"
-        msg['Message-ID'] = self.msgid
+                body: str = "The backup is now completed"
+        msg['Message-ID']: Header = self.__msgid
         msg.attach(MIMEText(body, 'plain'))
-        email_msg = msg.as_string()
+        email_msg: str = msg.as_string()
         return email_msg

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Author:chomes@github
 # Defining functions
-from subprocess import Popen
+from subprocess import Popen, call
 from pathlib import Path
 from configparser import ConfigParser
 from mods.email import EmailClient
@@ -12,7 +12,7 @@ class RsyncClient:
     """
     Class for the module of rsync
     """
-    def __init__(self, file):
+    def __init__(self, file: str):
         """
         Init for creating the class
         :param file: This is a config file that takes a list of arguments:
@@ -38,17 +38,17 @@ class RsyncClient:
 
     # Method for installing rsync
     # noinspection PyMethodMayBeStatic
-    def install_rsync(self, distro):
+    def install_rsync(self, distro: str):
         """
         Method for installing rsync
         :param distro: choose, debian, redhat
         :return: Notification of package installed
         """
         if distro == "debian":
-            command = "apt install rsync"
+            command = "apt install rsync -y"
             Popen(command, shell=True).wait()
         elif distro == "rhel":
-            command = "yum install rsync"
+            command = "yum install rsync -y"
             Popen(command, shell=True).wait()
         print("Package installed")
 

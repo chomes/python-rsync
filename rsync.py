@@ -12,9 +12,10 @@
 
 # Importing functions
 from mods.sync import RsyncClient
+from mods.email import EmailClient
 from shutil import which
 from pathlib import Path
-
+import configparser
 
 # Checking if user has rsync installed
 if which("rsync") is not None:
