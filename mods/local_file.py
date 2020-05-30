@@ -24,7 +24,7 @@ class LocalFile:
         Repr for working with the module
         :return: str of the file
         """
-        return str(self.file)
+        return f" Local file: {str(self.file)}"
 
     def __md5_hash(self) -> str:
         """
@@ -33,13 +33,13 @@ class LocalFile:
         """
         return md5(self.file.read_bytes()).hexdigest()
 
-    def compare_md5(self, file_md5: str) -> True or False:
+    def compare_md5(self, md5sum: str) -> True or False:
         """
         Method used to check an external md5 value against your own to see if it's the same
-        :param file_md5: Other files md5
+        :param md5sum: Other files md5
         :return: True or False
         """
-        if self.__md5_hash() == file_md5:
+        if self.__md5_hash() == md5sum:
             return True
         else:
             return False
@@ -51,12 +51,16 @@ class LocalFile:
         """
         return ctime(getmtime(str(self.file)))
 
-    def local_copy(self, destination: Union[str, Path]):
+    def local_copy(self, destination: Union[str, Path]) -> True or Exception:
         try:
             copy2(self.file, destination)
+            return True
         except PermissionError as e:
-            print(f"""You don't have permission to this file, please try with the right permissions
-            Error: {e}""")
+            print(f"You don't have permission to {self.__str__()}, please try with the right permissions")
+            return e
         except FileNotFoundError as e:
-            print(f""" This file no longer exists or never did, please try again
-            Error: {e} """)
+            print(f" {self.__str__()} file no longer exists or never did, please try again")
+            return e
+        except IsADirectoryError as e:
+            print(f" {self.__str__()} is a directory and not a file, please try again")
+            return e
