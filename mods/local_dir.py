@@ -11,7 +11,7 @@ from shutil import copytree
 
 class LocalDirectory:
     def __init__(self, location: Path):
-        self.directory: Union[str, Path] = location
+        self.directory: Union[Path, str] = location
         if self.directory.is_dir():
             pass
         elif self.directory.is_file():
@@ -22,7 +22,7 @@ class LocalDirectory:
         else:
             print("Something is not right here, either make this non existent directory or an existing dir")
             raise TypeError
-        self.directory_items: List[Dict[str: str, str: LocalFile or LocalDirectory, str:str]] = list(
+        self.directory_items: List[Dict[str, LocalFile or LocalDirectory]] = list(
             {"name": item.name, "object": LocalFile(item) if item.is_file() else LocalDirectory(item),
              "type": "file" if item.is_file() else "directory"} for item in self.directory.rglob("*"))
 

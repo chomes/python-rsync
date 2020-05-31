@@ -1,28 +1,31 @@
 from paramiko.client import SSHClient, AutoAddPolicy
+from typing import Union
+from pathlib import Path
 from paramiko import sftp_client
 from time import ctime
 
 
 class RemoteFile:
-    def __init__(self, file: str, ssh_key: str, ssh_pass: None or str,
+    def __init__(self, file: Path, ssh_key: Path, ssh_pass: None or str,
                  server: str, server_port: int or None, username: str,
                  auto_trust: bool = False):
         self.__ssh_client: SSHClient = SSHClient()
-        if auto_trust:
+        self.__auto_trust: bool = auto_trust
+        if self.__auto_trust:
             self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
-        self.__ssh_key: str = ssh_key
+        self.__ssh_key: Path = ssh_key
         self.__ssh_password: str = ssh_pass
         self.__ssh_port: int = 22 if not server_port else int(server_port)
         self.__ssh_server: str = server
         self.__ssh_username: str = username
-        self.file: str = file
+        self.file: Union[str, Path] = file
         self.__sftp_client: None or sftp_client = None
 
     def __repr__(self):
         return f"Remote file {self.file}"
 
     def __str__(self):
-        return self.file
+        return str(self.file)
 
     def __ssh_connect(self):
         """
@@ -31,7 +34,7 @@ class RemoteFile:
         """
         self.__ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
                                   username=self.__ssh_username, passphrase=self.__ssh_password,
-                                  key_filename=self.__ssh_key)
+                                  key_filename=self.__ssh_key.__str__())
 
     def __sftp_connect(self):
         """
@@ -47,7 +50,7 @@ class RemoteFile:
         :return: md5 value of file
         """
         self.__ssh_connect()
-        stdin, stdout, stderr = self.__ssh_client.exec_command(f"md5sum {self.file}")
+        stdin, stdout, stderr = self.__ssh_client.exec_command(f"md5sum {self.__str__()}")
         self.__ssh_client.close()
         return stdout.read().decode().split(" ")[0]
 
@@ -57,7 +60,7 @@ class RemoteFile:
         :return: Modified date of the file
         """
         self.__sftp_connect()
-        modified_time = ctime(self.__sftp_client.file(self.file).stat().st_mtime)
+        modified_time = ctime(self.__sftp_client.file(self.__str__()).stat().st_mtime)
         self.__sftp_client.close()
         self.__ssh_client.close()
         return modified_time
@@ -81,7 +84,7 @@ class RemoteFile:
         """
         self.__sftp_connect()
         try:
-            self.__sftp_client.put(localpath=local_path, remotepath=self.file)
+            self.__sftp_client.put(localpath=local_path, remotepath=self.__str__())
             self.__sftp_client.close()
             self.__ssh_client.close()
             return True
@@ -109,7 +112,7 @@ class RemoteFile:
         """
         self.__sftp_connect()
         try:
-            self.__sftp_client.get(remotepath=self.file, localpath=local_path)
+            self.__sftp_client.get(remotepath=self.__str__(), localpath=local_path)
         except FileNotFoundError as e:
             print(f" File {self.file} does not exist, please try again")
             self.__sftp_client.close()
@@ -133,7 +136,7 @@ class RemoteFile:
         """
         self.__sftp_connect()
         try:
-            self.__sftp_client.stat(self.file)
+            self.__sftp_client.stat(self.__str__())
             self.__sftp_client.close()
             self.__ssh_client.close()
             return True
