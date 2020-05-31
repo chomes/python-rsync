@@ -41,7 +41,7 @@ class RemoteFile:
         self.__ssh_connect()
         self.__sftp_client: sftp_client = self.__ssh_client.open_sftp()
 
-    def __md5_hash(self) -> str:
+    def md5_hash(self) -> str:
         """
         Method used to grab the md5sum of the remote file, used only with compare_md5
         :return: md5 value of file
@@ -68,7 +68,7 @@ class RemoteFile:
         :param md5sum: Local md5sum value
         :return:
         """
-        if self.__md5_hash() == md5sum:
+        if self.md5_hash() == md5sum:
             return True
         else:
             return False
@@ -126,7 +126,7 @@ class RemoteFile:
             self.__ssh_client.close()
             return e
 
-    def file_exists(self) -> True or Exception:
+    def file_exists(self) -> True or False:
         """
         Method used to check if file exists
         :return: True or False
@@ -137,8 +137,8 @@ class RemoteFile:
             self.__sftp_client.close()
             self.__ssh_client.close()
             return True
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             print(f"Can't find {self.file}, check that it exists")
             self.__sftp_client.close()
             self.__ssh_client.close()
-            return e
+            return False

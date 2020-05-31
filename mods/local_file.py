@@ -26,7 +26,7 @@ class LocalFile:
         """
         return f" Local file: {str(self.file)}"
 
-    def __md5_hash(self) -> str:
+    def md5_hash(self) -> str:
         """
         Method used to return the md5 sum of the file
         :return: md5sum figure
@@ -39,7 +39,7 @@ class LocalFile:
         :param md5sum: Other files md5
         :return: True or False
         """
-        if self.__md5_hash() == md5sum:
+        if self.md5_hash() == md5sum:
             return True
         else:
             return False
