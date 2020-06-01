@@ -258,7 +258,7 @@ class RemoteDirectory:
         :return: True or False
         """
         destination_items: List[LocalFile or LocalDirectory] = self.destination_walker(destination=destination)
-        failed_files: List[Dict[str: str, str: Exception]] = list()
+        failed_files: List[Dict[str, Exception]] = list()
         if destination.directory.exists():
             print("This directory already exists, please try again")
             return False
