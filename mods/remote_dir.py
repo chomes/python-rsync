@@ -34,7 +34,10 @@ class RemoteDirectory:
         """
         self.__ssh_client: SSHClient = active_ssh if active_ssh else SSHClient
         self.__auto_trust: bool = auto_trust
-        self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+        if auto_trust:
+            self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+        else:
+            self.__ssh_client.load_system_host_keys()
         self.__ssh_key: Path = ssh_key
         self.__ssh_password: str = ssh_pass
         self.__ssh_port: int = 22 if not server_port else int(server_port)
