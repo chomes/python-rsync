@@ -9,6 +9,16 @@ class RemoteFile:
     def __init__(self, file: Path, ssh_key: Path, ssh_pass: None or str,
                  server: str, server_port: int or None, username: str,
                  auto_trust: bool = False):
+        """
+        A way to manipulate remote files from a server to manage them
+        :param file: Path of the file on the remote server
+        :param ssh_key: ssh key used to connect to the server
+        :param ssh_pass: pass phrase for the ssh key
+        :param server: server to connect to
+        :param server_port: ssh port of the server
+        :param username: username to remote to
+        :param auto_trust: If the host isn't trusted
+        """
         self.__ssh_client: SSHClient = SSHClient()
         self.__auto_trust: bool = auto_trust
         if self.__auto_trust:

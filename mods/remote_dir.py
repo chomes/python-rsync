@@ -187,7 +187,7 @@ class RemoteDirectory:
             for item in destination.directory_items:
                 non_rooted: str = str(item["object"]).replace(destination.__str__(), "")
                 if non_rooted.startswith("/"):
-                    non_rooted = non_rooted[1:]
+                    non_rooted: str = non_rooted[1:]
                 if item["type"] == "directory":
                     destination_items.append({"name": item["name"],
                                               "object":
@@ -214,7 +214,7 @@ class RemoteDirectory:
 
     def fetch_file(self, remote_file: RemoteFile) -> Dict[str, RemoteFile]:
         for file in self.directory_items:
-            if file["type"] == "file" and file["object"].compare_md5(remote_file.md5_hash()):
+            if file["name"] == remote_file.file.name and file["object"].compare_md5(remote_file.md5_hash()):
                 return file
 
     def copy_directory_to_local_directory(self, destination: LocalDirectory) -> True or False:
@@ -237,7 +237,7 @@ class RemoteDirectory:
                     pass
                 else:
                     des["object"].make_dir()
-            if des["type"] == "file":
+            elif des["type"] == "file":
                 transact: True or Exception = sor["object"].remote_to_local_copy(des["object"].__str__())
                 if isinstance(transact, Exception):
                     failed_files.append({"path": des["object"].__str__(), "error": transact})
@@ -270,12 +270,12 @@ class RemoteDirectory:
 
         for sor, des in zip(source.directory_items, destination_items):
             if des["type"] == "directory":
-                if des["object"].directory_exists:
+                if des["object"].directory_exists():
                     pass
                 else:
                     des["object"].make_dir()
-            if des["type"] == "file":
-                transact: True or Exception = des["object"].local_to_remote_copy(sor.__str__())
+            elif des["type"] == "file":
+                transact: True or Exception = des["object"].local_to_remote_copy(sor["object"].__str__())
                 if isinstance(transact, Exception):
                     failed_files.append({"path": des["object"].__str__(), "error": transact})
                 elif transact:
@@ -307,3 +307,7 @@ class RemoteDirectory:
             self.__sftp_client.close()
             self.__ssh_client.close()
             return False
+
+    def remote_to_local_file_copy(self, source: RemoteFile, destination: Union[str, Path]):
+        file: Dict[str, RemoteFile] = self.fetch_file(source)
+        return file["object"].remote_to_local_copy(destination.__str__())

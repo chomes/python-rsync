@@ -1,5 +1,3 @@
-# local copy entire folder
-# local copy individual files
 from typing import Union, Dict, List
 from mods.local_file import LocalFile
 from pathlib import Path
@@ -11,6 +9,10 @@ from shutil import copytree
 
 class LocalDirectory:
     def __init__(self, location: Path):
+        """
+        Local directory module used to manipulate local files and directories in your physical system
+        :param location: Location of the parent directory for the folder you want to manipulate
+        """
         self.directory: Union[Path, str] = location
         if self.directory.is_dir():
             pass
@@ -104,4 +106,3 @@ class LocalDirectory:
             else:
                 print("This is not a file, it's a directory")
                 return IsADirectoryError
-

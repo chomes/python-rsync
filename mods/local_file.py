@@ -10,6 +10,10 @@ import logging
 
 class LocalFile:
     def __init__(self, file: Path):
+        """
+        Module used to manipulate local files within your system for copying, and checking md5 sums
+        :param file:
+        """
         self.file: Union[str, Path] = file
 
     def __str__(self) -> str:
