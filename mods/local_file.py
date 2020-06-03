@@ -5,16 +5,20 @@ from time import ctime
 from typing import Union
 from os.path import getmtime
 from hashlib import md5
-import logging
+from mods.logger import Logger
 
 
 class LocalFile:
-    def __init__(self, file: Path):
+    def __init__(self, file: Path, logger: Logger or None):
         """
         Module used to manipulate local files within your system for copying, and checking md5 sums
         :param file:
         """
         self.file: Union[str, Path] = file
+        if logger:
+            self.logger: Logger = logger
+        else:
+            self.logger = None
 
     def __str__(self) -> str:
         """
@@ -44,8 +48,12 @@ class LocalFile:
         :return: True or False
         """
         if self.md5_hash() == md5sum:
+            if self.logger:
+                self.logger.info("Both file are the same")
             return True
         else:
+            if self.logger:
+                self.logger.info("Both files are different")
             return False
 
     def modified_time(self) -> ctime:
@@ -55,16 +63,35 @@ class LocalFile:
         """
         return ctime(getmtime(str(self.file)))
 
-    def local_copy(self, destination: Union[str, Path]) -> True or Exception:
+    def transfer_method(self, destination: "LocalFile") -> True or Exception:
         try:
-            copy2(self.file, destination)
+            copy2(self.file, destination.file)
             return True
         except PermissionError as e:
-            print(f"You don't have permission to {self.__str__()}, please try with the right permissions")
+            if self.logger:
+                self.logger.warning(f"You don't have permission to "
+                                    f"{self.__str__()}, please try with the right permissions")
             return e
         except FileNotFoundError as e:
-            print(f" {self.__str__()} file no longer exists or never did, please try again")
+            if self.logger:
+                self.logger.warning(f" {self.__str__()} file no longer exists or never did, please try again")
             return e
         except IsADirectoryError as e:
-            print(f" {self.__str__()} is a directory and not a file, please try again")
+            if self.logger:
+                self.logger.warning(f" {self.__str__()} is a directory and not a file, please try again")
             return e
+
+    def local_copy(self, destination: "LocalFile") -> True or Exception:
+        if self.file.exists():
+            if not self.compare_md5(destination.md5_hash()):
+                if self.logger:
+                    self.logger.info(f"File: {destination.__str__()} has been copied")
+                return self.transfer_method(destination)
+            else:
+                if self.logger:
+                    self.logger.info(f"File: {destination.__str__()} already exists")
+                return FileExistsError
+        else:
+            return self.transfer_method(destination)
+
+

@@ -4,10 +4,11 @@ from pathlib import Path
 from paramiko.sftp_client import SFTPClient
 from mods.local_file import LocalFile
 from time import ctime
+from mods.logger import Logger
 
 
 class RemoteFile:
-    def __init__(self, file: Path, ssh_key: Path, ssh_pass: None or str,
+    def __init__(self, file: Path, ssh_key: Path, logger: Logger or None, ssh_pass: None or str,
                  server: str, server_port: int or None, username: str,
                  auto_trust: bool = False,
                  active_ssh: SSHClient or None = None):
@@ -18,6 +19,7 @@ class RemoteFile:
         :param ssh_pass: pass phrase for the ssh key
         :param server: server to connect to
         :param server_port: ssh port of the server
+        :param logger: Parse in logger for file
         :param username: username to remote to
         :param auto_trust: If the host isn't trusted
         """
@@ -27,6 +29,10 @@ class RemoteFile:
             self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
         else:
             self.__ssh_client.load_system_host_keys()
+        if logger:
+            self.logger: Logger = logger
+        else:
+            self.logger: None = None
         self.__ssh_key: Path = ssh_key
         self.__ssh_password: str = ssh_pass
         self.__ssh_port: int = 22 if not server_port else int(server_port)
@@ -120,23 +126,30 @@ class RemoteFile:
         try:
             if action == "local":
                 self.__sftp_client.put(remotepath=self.__str__(), localpath=local_path.__str__())
+                if self.logger:
+                    self.logger.info(f"Local file: {local_path.__str__()} was copied to {self.__str__()}")
             elif action == "remote":
                 self.__sftp_client.get(localpath=local_path.__str__(), remotepath=self.__str__())
+                if self.logger:
+                    self.logger.info(f"Remote file: {self.__str__()} was copied locally to {local_path.__str__()}")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return True
         except FileNotFoundError as e:
-            print(f" File {self.file} does not exist, please try again")
+            if self.logger:
+                self.logger.warning(f" File {self.file} does not exist, please try again")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return e
         except PermissionError as e:
-            print(f"You don't have access to {local_path}, please try again")
+            if self.logger:
+                self.logger.warning(f"You don't have access to {local_path}, please try again")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return e
         except IsADirectoryError as e:
-            print(f"{local_path} is a directory and not a file, please try again")
+            if self.logger:
+                self.logger.warning(f"{local_path} is a directory and not a file, please try again")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return e
@@ -155,7 +168,8 @@ class RemoteFile:
             if not self.compare_md5(local_path.md5_hash(), copy=True):
                 return self.transfer_method(local_path=local_path, action="local")
             else:
-                print("File has been copied already")
+                if self.logger:
+                    self.logger.info("File has been copied already")
                 return FileExistsError
         else:
             return self.transfer_method(local_path=local_path, action="local")
@@ -174,7 +188,8 @@ class RemoteFile:
             if not self.compare_md5(local_path.md5_hash(), copy=True):
                 return self.transfer_method(local_path=local_path, action="remote")
             else:
-                print("File has been copied already")
+                if self.logger:
+                    self.logger.info("File has been copied already")
                 return FileExistsError
         else:
             return self.transfer_method(local_path=local_path, action="remote")
@@ -197,7 +212,8 @@ class RemoteFile:
             else:
                 return True
         except FileNotFoundError:
-            print(f"Can't find {self.file}, check that it exists")
+            if self.logger:
+                self.logger.warning(f"Can't find {self.file}, check that it exists")
             if not copy:
                 self.__sftp_client.close()
                 self.__ssh_client.close()

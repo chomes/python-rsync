@@ -5,10 +5,11 @@ from hashlib import md5
 from os.path import getmtime
 from time import ctime
 from shutil import copytree
+from mods.logger import Logger
 
 
 class LocalDirectory:
-    def __init__(self, location: Path):
+    def __init__(self, location: Path, logger: Logger or None):
         """
         Local directory module used to manipulate local files and directories in your physical system
         :param location: Location of the parent directory for the folder you want to manipulate
@@ -24,8 +25,15 @@ class LocalDirectory:
         else:
             print("Something is not right here, either make this non existent directory or an existing dir")
             raise TypeError
+        if logger:
+            self.logger: Logger = logger
+        else:
+            self.logger: None = None
         self.directory_items: List[Dict[str, LocalFile or LocalDirectory]] = list(
-            {"name": item.name, "object": LocalFile(item) if item.is_file() else LocalDirectory(item),
+            {"name": item.name,
+             "object": LocalFile(file=item,
+                                 logger=self.logger) if item.is_file() else LocalDirectory(location=item,
+                                                                                           logger=self.logger),
              "type": "file" if item.is_file() else "directory"} for item in self.directory.rglob("*"))
 
     def __repr__(self) -> str:
@@ -69,16 +77,21 @@ class LocalDirectory:
                 copytree(src=self.directory, dst=local_directory)
                 return True
             except PermissionError as e:
-                print(f"You don't have permission to {self.__str__()}, please try with the right permissions")
+                if self.logger:
+                    self.logger.warning(f"You don't have permission to {self.__str__()}, "
+                                        f"please try with the right permissions")
                 return e
             except FileNotFoundError as e:
-                print(f" {self.__str__()} file no longer exists or never did, please try again")
+                if self.logger:
+                    self.logger.warning(f" {self.__str__()} file no longer exists or never did, please try again")
                 return e
             except NotADirectoryError as e:
-                print(f" {self.__str__()} is a file and not a directory, please try again")
+                if self.logger:
+                    self.logger.warning(f" {self.__str__()} is a file and not a directory, please try again")
                 return e
         else:
-            print("Directory already exists, select a new location")
+            if self.logger:
+                self.logger.warning("Directory already exists, select a new location")
             return IsADirectoryError
 
     def make_dir(self) -> True or False:
@@ -90,7 +103,8 @@ class LocalDirectory:
             self.directory.mkdir(mode=0o755)
             return True
         except FileExistsError:
-            print(f"{self.__str__()} already exists, not creating directory")
+            if self.logger:
+                self.logger.warning(f"{self.__str__()} already exists, not creating directory")
             return False
 
     def local_copy_file(self, copy_file: LocalFile, destination: Union[str, Path]) -> True or Exception:
@@ -104,5 +118,6 @@ class LocalDirectory:
             if file["name"] == copy_file.file.name and file["object"].compare_md5(copy_file.md5_hash):
                 return file["object"].local_copy(destination)
             else:
-                print("This is not a file, it's a directory")
+                if self.logger:
+                    self.logger.info(f" {file['name']} is a directory not a file")
                 return IsADirectoryError

@@ -7,10 +7,11 @@ from typing import Union, List, Dict, Any
 from pathlib import Path
 from time import ctime
 from stat import S_ISDIR
+from mods.logger import Logger
 
 
 class RemoteDirectory:
-    def __init__(self, directory: Path, ssh_key: Path, ssh_pass: None or str,
+    def __init__(self, directory: Path, ssh_key: Path, logger: Logger or None, ssh_pass: None or str,
                  server: str, server_port: int or None, username: str,
                  auto_trust: bool = False, cascade: bool = True,
                  active_ssh: None or SSHClient = None):
@@ -39,6 +40,10 @@ class RemoteDirectory:
         else:
             self.__ssh_client.load_system_host_keys()
         self.__ssh_key: Path = ssh_key
+        if logger:
+            self.logger: Logger = logger
+        else:
+            self.logger: None = None
         self.__ssh_password: str = ssh_pass
         self.__ssh_port: int = 22 if not server_port else int(server_port)
         self.__ssh_server: str = server
@@ -71,7 +76,8 @@ class RemoteDirectory:
                                                                            username=self.__ssh_username,
                                                                            auto_trust=self.__auto_trust,
                                                                            cascade=False,
-                                                                           active_ssh=self.__ssh_client),
+                                                                           active_ssh=self.__ssh_client,
+                                                                           logger=self.logger),
                                                  "type": "directory"})
                 else:
                     self.directory_items.append({"name": Path(item).name,
@@ -82,7 +88,8 @@ class RemoteDirectory:
                                                                       server=self.__ssh_server,
                                                                       username=self.__ssh_username,
                                                                       auto_trust=self.__auto_trust,
-                                                                      active_ssh=self.__ssh_client),
+                                                                      active_ssh=self.__ssh_client,
+                                                                      logger=self.logger),
                                                  "type": "file"})
         else:
             pass
@@ -176,12 +183,14 @@ class RemoteDirectory:
             self.__ssh_client.close()
             return True
         except PermissionError:
-            print("You do not have access to this area, please try again")
+            if self.logger:
+                self.logger.warning("You do not have access to this area, please try again")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return False
         except OSError:
-            print("The directory already exists, this is not needed")
+            if self.logger:
+                self.logger.warning("The directory already exists, this is not needed")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return False
@@ -225,7 +234,8 @@ class RemoteDirectory:
                                                                   ssh_key=self.__ssh_key,
                                                                   auto_trust=self.__auto_trust,
                                                                   cascade=False,
-                                                                  active_ssh=self.__ssh_client),
+                                                                  active_ssh=self.__ssh_client,
+                                                                  logger=self.logger),
                                               "type": "directory"})
                 elif item["type"] == "file":
                     destination_items.append({"name": item["name"],
@@ -236,7 +246,8 @@ class RemoteDirectory:
                                                                    ssh_pass=self.__ssh_password,
                                                                    ssh_key=self.__ssh_key,
                                                                    auto_trust=self.__auto_trust,
-                                                                   active_ssh=self.__ssh_client),
+                                                                   active_ssh=self.__ssh_client,
+                                                                   logger=self.logger),
                                               "type": "file"})
         return destination_items
 
@@ -263,7 +274,8 @@ class RemoteDirectory:
         destination_items: List[LocalFile or LocalDirectory] = self.destination_walker(destination=destination)
         failed_files: List[Dict[str, Exception]] = list()
         if destination.directory.exists():
-            print("This directory already exists, please try again")
+            if self.logger:
+                self.logger.warning(f"Directory: {destination.__str__()} exists, failing to copy entire folder")
             return False
         else:
             destination.make_dir()
@@ -282,13 +294,16 @@ class RemoteDirectory:
                     pass
 
         if len(failed_files) == 0:
-            print("Copy successful")
+            if self.logger:
+                self.logger.info("Copy successful")
             return True
         elif len(failed_files) == len(self.directory_items):
-            print("Full copy unsuccessful")
+            if self.logger:
+                self.logger.critical("Full copy unsuccessful")
             return False
         elif 0 < len(failed_files) < len(self.directory_items):
-            print("Not all files copied completely, check logs for details")
+            if self.logger:
+                self.logger.warning("Not all files copied completely, check logs for details")
             return False
 
     def local_to_remote(self, source: LocalDirectory) -> True or False:
@@ -319,13 +334,16 @@ class RemoteDirectory:
                     pass
 
         if len(failed_files) == 0:
-            print("Copy successful")
+            if self.logger:
+                self.logger.info("Copy successful")
             return True
         elif len(failed_files) == len(source.directory_items):
-            print("Full copy unsuccessful")
+            if self.logger:
+                self.logger.critical("Full copy unsuccessful")
             return False
         elif 0 < len(failed_files) < len(source.directory_items):
-            print("Not all files copied completely, check logs for details")
+            if self.logger:
+                self.logger.warning("Not all files copied completely, check logs for details")
             return False
 
     def directory_exists(self) -> True or False:
@@ -343,7 +361,8 @@ class RemoteDirectory:
             self.__ssh_client.close()
             return True
         except FileNotFoundError:
-            print(f"Can't find {self.directory}, check that it exists")
+            if self.logger:
+                self.logger.warning(f"Can't find {self.directory}, check that it exists")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return False
