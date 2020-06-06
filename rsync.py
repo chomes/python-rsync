@@ -11,8 +11,6 @@
 # Learning: Try and use dictionaries in script if possible for learning.
 
 # Importing functions
-from modules.sync import RsyncClient
-from modules.email import EmailClient
 from shutil import which
 from pathlib import Path
 import configparser

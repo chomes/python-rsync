@@ -5,7 +5,7 @@ from time import ctime
 from typing import Union
 from os.path import getmtime
 from hashlib import md5
-from modules.logger import Logger
+from python_rsync.modules.logger import Logger
 
 
 class LocalFile:

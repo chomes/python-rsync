@@ -1,13 +1,13 @@
 from paramiko.client import SSHClient, AutoAddPolicy
 from paramiko.sftp_client import SFTPClient
-from modules.remote_file import RemoteFile
-from modules.local_dir import LocalDirectory
-from modules.local_file import LocalFile
+from python_rsync.modules.remote_file import RemoteFile
+from python_rsync.modules.local_dir import LocalDirectory
+from python_rsync.modules.local_file import LocalFile
 from typing import Union, List, Dict, Any
 from pathlib import Path
 from time import ctime
 from stat import S_ISDIR
-from modules.logger import Logger
+from python_rsync.modules.logger import Logger
 
 
 class RemoteDirectory:

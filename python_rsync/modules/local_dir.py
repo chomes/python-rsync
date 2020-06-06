@@ -1,11 +1,11 @@
 from typing import Union, Dict, List
-from modules.local_file import LocalFile
+from python_rsync.modules.local_file import LocalFile
 from pathlib import Path
 from hashlib import md5
 from os.path import getmtime
 from time import ctime
 from shutil import copytree
-from modules.logger import Logger
+from python_rsync.modules.logger import Logger
 
 
 class LocalDirectory:

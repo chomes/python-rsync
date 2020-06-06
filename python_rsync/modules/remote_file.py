@@ -2,9 +2,9 @@ from paramiko.client import SSHClient, AutoAddPolicy
 from typing import Union
 from pathlib import Path
 from paramiko.sftp_client import SFTPClient
-from modules.local_file import LocalFile
+from python_rsync.modules.local_file import LocalFile
 from time import ctime
-from modules.logger import Logger
+from python_rsync.modules.logger import Logger
 
 
 class RemoteFile:

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # Author:chomes@github
 # Defining functions
-from modules.local_dir import LocalDirectory
-from modules.remote_dir import RemoteDirectory
-from modules.local_file import LocalFile
-from modules.remote_file import RemoteFile
+from python_rsync.modules.local_dir import LocalDirectory
+from python_rsync.modules.remote_dir import RemoteDirectory
 from typing import Union
 from pathlib import Path
 from configparser import ConfigParser
-from modules.email import EmailClient
-from modules.logger import Logger
+from python_rsync.modules.email import EmailClient
+from python_rsync.modules.logger import Logger
 
 
 class RsyncClient:
