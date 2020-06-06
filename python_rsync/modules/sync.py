@@ -65,7 +65,7 @@ class RsyncClient:
                                    auto_trust=self.auto_trust), LocalDirectory(location=self.des, logger=self.logs)
 
     # Method for remote sync
-    def remote_to_local(self):
+    def remote_sync(self) -> True or False:
         """
         Run a copy from remote to local directory
         :return: Result of action
@@ -73,4 +73,33 @@ class RsyncClient:
         if self.email:
             self.email.compose_message(action="start")
         self.sor, self.des = self.sor_des_generator()
-        sync = self.sor.remote_to_local(destination=self.des)
+        if self.backup_type == "RemLo":
+            sync = self.sor.remote_to_local(destination=self.des)
+            if sync:
+                if self.email:
+                    self.email.compose_message(action="stop")
+                return True
+            else:
+                if self.email:
+                    self.email.compose_message(action="stop")
+                return False
+        elif self.backup_type == "LoRem":
+            sync = self.des.local_to_remote(source=self.sor)
+            if sync:
+                if self.email:
+                    self.email.compose_message(action="stop")
+                return True
+            else:
+                if self.email:
+                    self.email.compose_message(action="stop")
+                return False
+
+    def local_sync(self) -> True or False:
+        """
+        Run a local dir copy to local
+        :return: Result of action
+        """
+        if self.email:
+            self.email.compose_message(action="start")
+        self.sor, self.des = self.sor_des_generator()
+        sync = self.sor.local_copy

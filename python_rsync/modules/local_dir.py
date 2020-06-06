@@ -94,6 +94,10 @@ class LocalDirectory:
                 self.logger.warning("Directory already exists, select a new location")
             return IsADirectoryError
 
+    def local_sync_dir(self, local_directory: "LocalDirectory") -> True:
+        return True
+
+
     def make_dir(self) -> True or False:
         """
         Make directory when it doesn't exist
