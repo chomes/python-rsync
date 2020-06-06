@@ -5,7 +5,7 @@ from time import ctime
 from typing import Union
 from os.path import getmtime
 from hashlib import md5
-from mods.logger import Logger
+from modules.logger import Logger
 
 
 class LocalFile:
@@ -93,5 +93,3 @@ class LocalFile:
                 return FileExistsError
         else:
             return self.transfer_method(destination)
-
-

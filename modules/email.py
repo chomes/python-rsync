@@ -8,6 +8,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from email.header import Header
+from typing import Union
+from pathlib import Path
 import email.utils
 from configparser import ConfigParser
 
@@ -16,7 +18,7 @@ class EmailClient:
     """
     EmailClient class is used to manage email content for sending emails for notifications
     """
-    def __init__(self, config: str):
+    def __init__(self, config: Union[str, Path]):
         """
         the __init__ intialises the class and requires one parameter to operate
         :param config: The config can take several arguments but only requires a few:
@@ -32,43 +34,47 @@ class EmailClient:
         """
         conf = ConfigParser()
         conf.read(config)
-        __email_dict: dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
-        self.__mail_server: str = __email_dict["server"]
-        self.__port: int = 25 if not __email_dict["port"] else int(__email_dict["port"])
-        self.__auth: str = None if not __email_dict["auth"] else __email_dict["auth"]
-        self.__security: str = None if not __email_dict["security"] else __email_dict["security"]
-        self.__auth_user: str = __email_dict["username"]
-        self.__auth_password: str = __email_dict["password"]
-        self.__to_addr: str = __email_dict["to_addr"]
-        self.__from_addr: str = __email_dict["from_addr"]
+        email_dict: dict = {key: value for item in conf.sections() for key, value in conf.items(item)}
+        self.__mail_server: str = email_dict["server"]
+        self.__port: int = 25 if not email_dict["port"] else int(email_dict["port"])
+        self.__auth: bool = False if not email_dict["auth"] else True
+        self.__security: str or None = None if not email_dict["security"] else email_dict["security"]
+        self.__auth_user: str or None = None if not email_dict["username"] else email_dict["username"]
+        self.__auth_password: str or None = None if not email_dict["password"] else email_dict["password"]
+        self.__to_addr: str = email_dict["to_addr"]
+        self.__from_addr: str = email_dict["from_addr"]
         self.__msgid: Header = Header(email.utils.make_msgid(domain=self.__from_addr.rsplit("@")[-1]))
 
+    def __str__(self):
+        return self.__from_addr
+
+    def __repr__(self):
+        return f"Sending from: {self.__to_addr} to: {self.__from_addr}"
+
     # Method for sending emails
-    def send_mail(self, msg, auth=None, security=None):
+    def send_mail(self, msg: MIMEMultipart):
         """
         Method used to send emails out.
         :param msg: Use the self.msg composer in the parameter field for this
-        :param auth: If it doesn't require authentication leave this blank
-        :param security: if this doesn't require security leave this blank
         :return: message if successful or unsuccessful response with a return value of the server object
         """
         # Checking for security
-        if security == "ssl":
-            __smtp_client: smtplib = smtplib.SMTP_SSL(self.__mail_server, self.__port)
-        elif security == "tls":
-            __smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
-            __smtp_client.starttls()
+        if self.__security == "ssl":
+            smtp_client: smtplib = smtplib.SMTP_SSL(self.__mail_server, self.__port)
+        elif self.__security == "tls":
+            smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
+            smtp_client.starttls()
         else:
-            __smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
+            smtp_client: smtplib = smtplib.SMTP(self.__mail_server, self.__port)
         # Checking for authentication
-        if auth:
-            __smtp_client.login(self.__auth_user, self.__auth_password)
-        __smtp_client.send_message(msg, self.__from_addr, self.__to_addr)
-        __smtp_client.quit()
+        if self.__auth:
+            smtp_client.login(self.__auth_user, self.__auth_password)
+        smtp_client.send_message(msg, self.__from_addr, self.__to_addr)
+        smtp_client.quit()
         print("Email sent")
 
     # Method for composing email message
-    def compose_message(self, action: str, logs=None) -> str:
+    def compose_message(self, action: str, logs: Union[str, Path] or None = None) -> str:
         """
         Method is used to compose message to send emails out
         :param action: This is three things: start, stop, running
@@ -93,7 +99,7 @@ class EmailClient:
                 with open(logs, "rb") as file:
                     part.set_payload(file.read())
                     encode_base64(part)
-                    part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(logs))
+                    part.add_header('Content-Disposition', 'attachment', filename=logs.name)
                     msg.attach(part)
                 body: str = "The backup is now completed, you can view the " \
                             "logs of the backup which is attacked in the email"

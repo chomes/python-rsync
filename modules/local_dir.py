@@ -1,11 +1,11 @@
 from typing import Union, Dict, List
-from mods.local_file import LocalFile
+from modules.local_file import LocalFile
 from pathlib import Path
 from hashlib import md5
 from os.path import getmtime
 from time import ctime
 from shutil import copytree
-from mods.logger import Logger
+from modules.logger import Logger
 
 
 class LocalDirectory:
@@ -121,3 +121,13 @@ class LocalDirectory:
                 if self.logger:
                     self.logger.info(f" {file['name']} is a directory not a file")
                 return IsADirectoryError
+
+    def directory_exists(self) -> True or False:
+        """
+        Check if directory exists
+        :return: True or False
+        """
+        if self.directory.exists():
+            return True
+        else:
+            return False

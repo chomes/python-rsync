@@ -1,13 +1,13 @@
 from paramiko.client import SSHClient, AutoAddPolicy
 from paramiko.sftp_client import SFTPClient
-from mods.remote_file import RemoteFile
-from mods.local_dir import LocalDirectory
-from mods.local_file import LocalFile
+from modules.remote_file import RemoteFile
+from modules.local_dir import LocalDirectory
+from modules.local_file import LocalFile
 from typing import Union, List, Dict, Any
 from pathlib import Path
 from time import ctime
 from stat import S_ISDIR
-from mods.logger import Logger
+from modules.logger import Logger
 
 
 class RemoteDirectory:
@@ -212,11 +212,13 @@ class RemoteDirectory:
                     non_rooted = non_rooted[1:]
                 if item["type"] == "directory":
                     destination_items.append({"name": item["name"],
-                                              "object": LocalDirectory(destination.directory.joinpath(non_rooted)),
+                                              "object": LocalDirectory(destination.directory.joinpath(non_rooted),
+                                                                       logger=self.logger),
                                               "type": "directory"})
                 elif item["type"] == "file":
                     destination_items.append({"name": item["name"],
-                                              "object": LocalFile(destination.directory.joinpath(non_rooted)),
+                                              "object": LocalFile(destination.directory.joinpath(non_rooted),
+                                                                  logger=self.logger),
                                               "type": "file"})
         else:
             for item in destination.directory_items:
@@ -274,9 +276,7 @@ class RemoteDirectory:
         destination_items: List[LocalFile or LocalDirectory] = self.destination_walker(destination=destination)
         failed_files: List[Dict[str, Exception]] = list()
         if destination.directory.exists():
-            if self.logger:
-                self.logger.warning(f"Directory: {destination.__str__()} exists, failing to copy entire folder")
-            return False
+            pass
         else:
             destination.make_dir()
 

@@ -4,12 +4,12 @@ from typing import Union
 
 
 class Logger:
-    def __init__(self, log_path: Union[str, Path], log_level):
+    def __init__(self, log_path: Union[str, Path], log_level: str):
         self.__leveling: dict = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
                                  "critical": logging.CRITICAL}
-        self.__log_format:str = "%(asctime)s %(levelname)s %(message)s"
+        self.__log_format: str = "%(asctime)s %(levelname)s %(message)s"
         self.log_path: Union[str, Path] = log_path
-        logging.basicConfig(format=self.__log_format, level=self.__leveling[log_level],
+        logging.basicConfig(format=self.__log_format, level=self.__leveling[log_level.lower()],
                             filename=log_path, filemode="a", datefmt="%d/%m/%Y %H:%M:%S")
         self.logger: logging = logging
 
