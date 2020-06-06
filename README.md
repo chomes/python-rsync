@@ -6,6 +6,8 @@ to now become a project where as I have learned more become a full blown stand a
 
 ## How this works
 
+In the project there are template folders for you to copy from, fill out the details with the information needed for the package to run.
+
 
 
 
