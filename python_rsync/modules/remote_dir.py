@@ -288,6 +288,10 @@ class RemoteDirectory:
         False by default
         :return: Confirmed file
         """
+        if not self.__check_ssh_connection():
+            self.__sftp_connect()
+        else:
+            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
         for file in self.directory_items:
             if file["name"] == remote_file.file.name and file["object"].compare_md5(remote_file.md5_hash(copy=copy)):
                 return file
@@ -300,6 +304,10 @@ class RemoteDirectory:
         :param destination:
         :return: True or False
         """
+        if not self.__check_ssh_connection():
+            self.__sftp_connect()
+        else:
+            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
         destination_items: List[LocalFile or LocalDirectory] = self.destination_walker(destination=destination)
         failed_files: List[Dict[str, Exception]] = list()
         if destination.directory.exists():
@@ -339,9 +347,13 @@ class RemoteDirectory:
     def local_to_remote(self, source: LocalDirectory) -> True or False:
         """
         Copy a local directory to remote directory of your choosing
-        :param source:
+        :param source: Local directory to copy to remote
         :return:Successful copy or failure
         """
+        if not self.__check_ssh_connection():
+            self.__sftp_connect()
+        else:
+            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
         destination_items: List[Dict[str, RemoteDirectory or RemoteFile]] = self.destination_walker(destination=source,
                                                                                                     reverse=True)
         failed_files: List[Dict[str, Exception]] = list()
@@ -378,6 +390,80 @@ class RemoteDirectory:
             if self.logger:
                 self.logger.warning("Not all files copied completely, check logs for details")
             return False
+
+    def recursive_delete(self):
+        directories: List[RemoteDirectory] = [directory["object"] for directory in self.directory_items
+                                              if directory["type"] == "directory"]
+        files: List[RemoteFile] = [file["object"] for file in self.directory_items if file["type"] == "file"]
+        failed_deletions: List[Dict[str, Exception]] = list()
+        for file in files:
+            delete: True or Exception = file.delete_file()
+            if isinstance(delete, Exception):
+                if delete == FileNotFoundError:
+                    pass
+                else:
+                    failed_deletions.append({"path": file.__str__(), "error": delete})
+            elif delete:
+                pass
+        if len(failed_deletions) > 0:
+            self.logger.warning("Could not delete all files, check logs for errors")
+            return False
+        else:
+            for directory in directories:
+                delete: True or Exception = directory.rmdir()
+                if isinstance(delete, Exception):
+                    if delete == FileNotFoundError:
+                        pass
+                    else:
+                        failed_deletions.append({"path": directory.__str__(), "error": delete})
+                elif delete:
+                    pass
+            if len(failed_deletions) > 0:
+                self.logger.warning("Although it appears all files were deleted, some folders could not,"
+                                    "please investigate this problem")
+                return False
+            elif len(failed_deletions) == 0:
+                self.logger.info("All files and folders were deleted")
+                return True
+
+    def rmdir(self, force: bool = False) -> True or Exception:
+        """
+        Delete an entire directory recursively or not, depending on the option
+        :param force: False by default, will recursively delete the entire remote directory.
+        :return: True or Exception
+        """
+        if not self.__check_ssh_connection():
+            self.__sftp_connect()
+        else:
+            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+
+        if force:
+            try:
+                self.recursive_delete()
+                self.rmdir()
+                return True
+            except FileNotFoundError:
+                self.logger.info(rf"Directory {self.__str__()} does not exist")
+                return FileNotFoundError
+            except PermissionError:
+                self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                return PermissionError
+            except OSError:
+                self.logger.warning(rf"Directory {self.__str__()} is not empty!")
+                return OSError
+        else:
+            try:
+                self.__sftp_client.rmdir(self.__str__())
+                return True
+            except FileNotFoundError:
+                self.logger.info(rf"Directory {self.__str__()} does not exist")
+                return FileNotFoundError
+            except PermissionError:
+                self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                return PermissionError
+            except OSError:
+                self.logger.warning(rf"Directory {self.__str__()} is not empty!")
+                return OSError
 
     def directory_exists(self) -> True or False:
         """

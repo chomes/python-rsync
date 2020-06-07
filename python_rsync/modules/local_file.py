@@ -64,6 +64,12 @@ class LocalFile:
         return ctime(getmtime(str(self.file)))
 
     def transfer_method(self, destination: "LocalFile") -> True or Exception:
+        """
+        Method used to copy a file over to the destination, it catches all expected errors and returns the
+        exception if it doesn't succeed.
+        :param destination: Destination of the local file.
+        :return:
+        """
         try:
             copy2(self.file, destination.file)
             return True
@@ -82,6 +88,13 @@ class LocalFile:
             return e
 
     def copy_file(self, destination: "LocalFile") -> True or Exception:
+        """
+        The method used to copy the file in it's entirety, it checks if the file exists first,
+        if it does it then compares it to the destination and sees if they are the same.
+        If the file doesn't exist or it's not the same md5sum, it will copy the file.
+        :param destination: Destination path of the file
+        :return: Returns either a True or an Exception
+        """
         if self.file.exists():
             if not self.compare_md5(destination.md5_hash()):
                 if self.logger:
@@ -94,11 +107,11 @@ class LocalFile:
         else:
             return self.transfer_method(destination)
 
-    def delete_file(self) -> True or False:
+    def delete_file(self) -> True or Exception:
         if self.file.exists():
             self.file.unlink()
             self.logger.info(f"File: {self.__str__()} has been deleted")
             return True
         else:
             self.logger.info(f"File: {self.__str__()} does not exist")
-            return False
+            return FileNotFoundError

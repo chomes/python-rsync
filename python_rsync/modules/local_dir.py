@@ -4,7 +4,7 @@ from pathlib import Path
 from hashlib import md5
 from os.path import getmtime
 from time import ctime
-from shutil import copytree
+from shutil import copytree, rmtree
 from python_rsync.modules.logger import Logger
 
 
@@ -95,6 +95,11 @@ class LocalDirectory:
             return IsADirectoryError
 
     def destination_walker(self, destination: "LocalDirectory") -> List[LocalFile or "LocalDirectory"]:
+        """
+        Walk through source directory and make a replica of the files and directories to the destionation
+        :param destination: Destination directory where you will merge the files and folders to
+        :return: List of files and folders to be created and moved
+        """
         destination_items: List[LocalFile or LocalDirectory] = list()
         for item in self.directory_items:
             non_rooted: str = rf"{item['object']}".replace(self.__str__(), "")[1:]
@@ -107,6 +112,11 @@ class LocalDirectory:
         return destination_items
 
     def individual_walker(self, source: LocalFile or "LocalDirectory") -> LocalFile or "LocalDirectory":
+        """
+        Convert an individual file or folder to the destination path to be copied or created
+        :param source: Local file or folder
+        :return: The object in the new path
+        """
         if type(source) == LocalDirectory:
             non_rooted: str = rf"{source.directory.name}"
             return {"name": rf"{non_rooted}", "object": LocalDirectory(location=self.directory.joinpath(non_rooted),
@@ -148,19 +158,6 @@ class LocalDirectory:
                 self.logger.warning("Not all files copied completely, check logs for details")
             return False
 
-    def make_dir(self) -> True or False:
-        """
-        Make directory when it doesn't exist
-        :return: Directory created
-        """
-        try:
-            self.directory.mkdir(mode=0o755)
-            return True
-        except FileExistsError:
-            if self.logger:
-                self.logger.warning(f"{self.__str__()} already exists, not creating directory")
-            return False
-
     def local_copy_file(self, copy_file: LocalFile, destination: Union[str, Path]) -> True or Exception:
         """
         Copy a file from this directory to another location
@@ -175,6 +172,48 @@ class LocalDirectory:
                 if self.logger:
                     self.logger.info(f" {file['name']} is a directory not a file")
                 return IsADirectoryError
+
+    def make_dir(self) -> True or False:
+        """
+        Make directory when it doesn't exist
+        :return: Directory created
+        """
+        try:
+            self.directory.mkdir(mode=0o755)
+            return True
+        except FileExistsError:
+            if self.logger:
+                self.logger.warning(f"{self.__str__()} already exists, not creating directory")
+            return False
+
+    def rmdir(self, force: bool = False) -> True or False:
+        """
+        Remove a directory
+        :param force: Set to false by default, force a delete even if files and folders exist
+        :return: Successful action or not
+        """
+        if force:
+            try:
+                rmtree(self.directory)
+                self.logger.info(rf"{self.__str__()} has been deleted")
+                return True
+            except FileNotFoundError:
+                self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
+                return False
+            except PermissionError:
+                self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
+                return False
+        else:
+            try:
+                self.directory.rmdir()
+                self.logger.info(rf"{self.__str__()} has been deleted")
+                return True
+            except FileNotFoundError:
+                self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
+                return False
+            except PermissionError:
+                self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
+                return False
 
     def directory_exists(self) -> True or False:
         """

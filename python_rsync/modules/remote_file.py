@@ -221,7 +221,7 @@ class RemoteFile:
             else:
                 return False
 
-    def delete_file(self) -> True or False:
+    def delete_file(self) -> True or Exception:
         if not self.__check_ssh_connection():
             self.__sftp_connect()
         else:
@@ -236,9 +236,9 @@ class RemoteFile:
             self.logger.info(f"File: {self.__str__()} does not exist")
             self.__sftp_client.close()
             self.__ssh_client.close()
-            return False
+            return FileNotFoundError
         except PermissionError:
             self.logger.warning(f"You do not have access to: {self.__str__()}")
             self.__sftp_client.close()
             self.__ssh_client.close()
-            return False
+            return PermissionError
