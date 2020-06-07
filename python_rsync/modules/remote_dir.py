@@ -97,7 +97,7 @@ class RemoteDirectory:
         self.__sftp_client: SFTPClient or None = None
 
     def __str__(self):
-        return str(self.directory)
+        return rf"{self.directory}"
 
     def __repr__(self):
         return f"{self.directory} has {len(self.directory_items)} files and folders"
@@ -207,9 +207,7 @@ class RemoteDirectory:
         destination_items: List[Dict[str, LocalFile or LocalDirectory or RemoteFile or RemoteDirectory]] = list()
         if not reverse:
             for item in self.directory_items:
-                non_rooted: str = str(item["object"]).replace(self.__str__(), "")
-                if non_rooted.startswith("/"):
-                    non_rooted = non_rooted[1:]
+                non_rooted: str = rf"{item['object']}".replace(self.__str__(), "")[1:]
                 if item["type"] == "directory":
                     destination_items.append({"name": item["name"],
                                               "object": LocalDirectory(destination.directory.joinpath(non_rooted),
@@ -222,9 +220,7 @@ class RemoteDirectory:
                                               "type": "file"})
         else:
             for item in destination.directory_items:
-                non_rooted: str = str(item["object"]).replace(destination.__str__(), "")
-                if non_rooted.startswith("/"):
-                    non_rooted: str = non_rooted[1:]
+                non_rooted: str = rf"{item['object']}".replace(destination.__str__(), "")[1:]
                 if item["type"] == "directory":
                     destination_items.append({"name": item["name"],
                                               "object":
@@ -252,6 +248,37 @@ class RemoteDirectory:
                                                                    logger=self.logger),
                                               "type": "file"})
         return destination_items
+
+    def individual_walker(self, source: LocalFile or LocalDirectory) -> dict:
+        """
+        Walk an individual file or folder from a local directory to make a new remote folder or file for copying
+        :param source: Local file or directory
+        :return: Dict of information
+        """
+        if type(source) == LocalFile:
+            non_root: str = rf"{source.file.name}"
+            return {"name": rf"{non_root}",
+                    "object": RemoteFile(file=Path(self.directory.joinpath(non_root)),
+                                         server=self.__ssh_server,
+                                         username=self.__ssh_username,
+                                         server_port=self.__ssh_port,
+                                         ssh_pass=self.__ssh_password,
+                                         ssh_key=self.__ssh_key,
+                                         auto_trust=self.__auto_trust,
+                                         logger=self.logger),
+                    "type": "file"}
+        elif type(source) == LocalDirectory:
+            non_root: str = rf"{source.directory.name}"
+            return {"name": rf"{non_root}",
+                    "object": RemoteDirectory(directory=Path(self.directory.joinpath(non_root)),
+                                              server=self.__ssh_server,
+                                              username=self.__ssh_username,
+                                              server_port=self.__ssh_port,
+                                              ssh_pass=self.__ssh_password,
+                                              ssh_key=self.__ssh_key,
+                                              auto_trust=self.__auto_trust,
+                                              logger=self.logger),
+                    "type": "folder"}
 
     def fetch_file(self, remote_file: RemoteFile, copy: bool = False) -> Dict[str, RemoteFile]:
         """
@@ -287,10 +314,13 @@ class RemoteDirectory:
                 else:
                     des["object"].make_dir()
             elif des["type"] == "file":
-                transact: True or Exception = sor["object"].remote_to_local_copy(des["object"].__str__())
-                if isinstance(transact, Exception):
-                    failed_files.append({"path": des["object"].__str__(), "error": transact})
-                elif transact:
+                transaction: True or Exception = sor["object"].remote_to_local_copy(des["object"].__str__())
+                if isinstance(transaction, Exception):
+                    if transaction == FileExistsError:
+                        pass
+                    else:
+                        failed_files.append({"path": des["object"].__str__(), "error": transaction})
+                elif transaction:
                     pass
 
         if len(failed_files) == 0:
@@ -314,7 +344,7 @@ class RemoteDirectory:
         """
         destination_items: List[Dict[str, RemoteDirectory or RemoteFile]] = self.destination_walker(destination=source,
                                                                                                     reverse=True)
-        failed_files: List[Dict[str: str, str: Exception]] = list()
+        failed_files: List[Dict[str, Exception]] = list()
         if self.directory_exists():
             pass
         else:
@@ -327,10 +357,13 @@ class RemoteDirectory:
                 else:
                     des["object"].make_dir()
             elif des["type"] == "file":
-                transact: True or Exception = des["object"].local_to_remote_copy(sor["object"].__str__())
-                if isinstance(transact, Exception):
-                    failed_files.append({"path": des["object"].__str__(), "error": transact})
-                elif transact:
+                transaction: True or Exception = des["object"].local_to_remote_copy(sor["object"].__str__())
+                if isinstance(transaction, Exception):
+                    if transaction == FileExistsError:
+                        pass
+                    else:
+                        failed_files.append({"path": des["object"].__str__(), "error": transaction})
+                elif transaction:
                     pass
 
         if len(failed_files) == 0:
@@ -367,6 +400,23 @@ class RemoteDirectory:
             self.__ssh_client.close()
             return False
 
-    def remote_to_local_file_copy(self, source: RemoteFile, destination: LocalFile):
+    def remote_to_local_file_copy(self, source: RemoteFile, destination: LocalFile) -> True or Exception:
+        """
+        Copy one file from the directory to a local destination
+        :param source: Remote file entry
+        :param destination: Local file entry
+        :return: Result of copying file
+        """
         file: Dict[str, RemoteFile] = self.fetch_file(source)
         return file["object"].remote_to_local_copy(destination)
+
+    def local_to_remote_file_copy(self, source: LocalFile) -> True or Exception:
+        """
+        Copy a local file to remote source
+        :param source: Local file being copied
+        :return: True or Exception
+        """
+        destination: Dict[str, RemoteFile] = self.individual_walker(source)
+        return destination["object"].local_to_remote_copy(source)
+
+

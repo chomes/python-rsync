@@ -40,7 +40,7 @@ class LocalDirectory:
         return f"Directory {self.directory.stem} has {len(self.directory_items)} files and directories"
 
     def __str__(self) -> str:
-        return f"{str(self.directory)}"
+        return rf"{self.directory}"
 
     def md5_hash(self) -> str:
         """
@@ -67,14 +67,14 @@ class LocalDirectory:
         """
         return ctime(getmtime(str(self.directory)))
 
-    def local_copy_dir(self, local_directory: Union[str, Path]) -> True or Exception:
+    def local_copy_dir(self, destination: Union[str, Path]) -> True or Exception:
         """
         Copy the entire tree recursively to a local destination
         :return: Copied action
         """
-        if not local_directory.exists():
+        if not destination.exists():
             try:
-                copytree(src=self.directory, dst=local_directory)
+                copytree(src=self.directory, dst=destination)
                 return True
             except PermissionError as e:
                 if self.logger:
@@ -94,9 +94,59 @@ class LocalDirectory:
                 self.logger.warning("Directory already exists, select a new location")
             return IsADirectoryError
 
-    def local_sync_dir(self, local_directory: "LocalDirectory") -> True:
-        return True
+    def destination_walker(self, destination: "LocalDirectory") -> List[LocalFile or "LocalDirectory"]:
+        destination_items: List[LocalFile or LocalDirectory] = list()
+        for item in self.directory_items:
+            non_rooted: str = rf"{item['object']}".replace(self.__str__(), "")[1:]
+            if item["type"] == "directory":
+                destination_items.append(LocalDirectory(location=destination.directory.joinpath(non_rooted),
+                                                        logger=self.logger))
+            elif item["type"] == "file":
+                destination_items.append(LocalFile(file=destination.directory.joinpath(non_rooted),
+                                                   logger=self.logger))
+        return destination_items
 
+    def individual_walker(self, source: LocalFile or "LocalDirectory") -> LocalFile or "LocalDirectory":
+        if type(source) == LocalDirectory:
+            non_rooted: str = rf"{source.directory.name}"
+            return {"name": rf"{non_rooted}", "object": LocalDirectory(location=self.directory.joinpath(non_rooted),
+                                                                       logger=self.logger), "type": "directory"}
+        elif type(source) == LocalFile:
+            non_rooted: str = rf"{source.file.name}"
+            return {"name": rf"{non_rooted}", "object": LocalFile(file=self.directory.joinpath(non_rooted),
+                                                                  logger=self.logger), "type": "file"}
+
+    def local_sync_dir(self, destination: "LocalDirectory") -> True or False:
+        destination_items = self.destination_walker(destination)
+        failed_files: List[Dict[str, Exception]] = list()
+        for source, destination in zip(self.directory_items, destination_items):
+            if destination["type"] == "directory":
+                if not destination["object"].exists():
+                    destination["object"].make_dir()
+                else:
+                    pass
+            elif destination["type"] == "file":
+                transaction: True or Exception = source["object"].copy_file(destination["object"])
+                if isinstance(transaction, Exception):
+                    if transaction == FileExistsError:
+                        pass
+                    else:
+                        failed_files.append({"path": destination["object"].__str__(), "error": transaction})
+                elif transaction:
+                    pass
+
+        if len(failed_files) == 0:
+            if self.logger:
+                self.logger.info("Copy successful")
+            return True
+        elif len(failed_files) == len(self.directory_items):
+            if self.logger:
+                self.logger.critical("Full copy unsuccessful")
+            return False
+        elif 0 < len(failed_files) < len(self.directory_items):
+            if self.logger:
+                self.logger.warning("Not all files copied completely, check logs for details")
+            return False
 
     def make_dir(self) -> True or False:
         """

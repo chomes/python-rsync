@@ -25,7 +25,7 @@ class LocalFile:
         STR method for the file
         :return: str
         """
-        return str(self.file)
+        return rf"{self.file}"
 
     def __repr__(self) -> str:
         """
@@ -81,7 +81,7 @@ class LocalFile:
                 self.logger.warning(f" {self.__str__()} is a directory and not a file, please try again")
             return e
 
-    def local_copy(self, destination: "LocalFile") -> True or Exception:
+    def copy_file(self, destination: "LocalFile") -> True or Exception:
         if self.file.exists():
             if not self.compare_md5(destination.md5_hash()):
                 if self.logger:
@@ -93,3 +93,12 @@ class LocalFile:
                 return FileExistsError
         else:
             return self.transfer_method(destination)
+
+    def delete_file(self) -> True or False:
+        if self.file.exists():
+            self.file.unlink()
+            self.logger.info(f"File: {self.__str__()} has been deleted")
+            return True
+        else:
+            self.logger.info(f"File: {self.__str__()} does not exist")
+            return False

@@ -102,4 +102,15 @@ class RsyncClient:
         if self.email:
             self.email.compose_message(action="start")
         self.sor, self.des = self.sor_des_generator()
-        sync = self.sor.local_copy
+        if self.des.directory_exists():
+            sync: True or Exception = self.sor.local_sync_dir(self.des)
+        else:
+            sync: True or Exception = self.sor.local_copy_dir(self.des)
+        if sync:
+            if self.email:
+                self.email.compose_message(action="stop")
+            return True
+        else:
+            if self.email:
+                self.email.compose_message(action="stop")
+            return False
