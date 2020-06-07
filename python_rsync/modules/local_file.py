@@ -110,8 +110,10 @@ class LocalFile:
     def delete_file(self) -> True or Exception:
         if self.file.exists():
             self.file.unlink()
-            self.logger.info(f"File: {self.__str__()} has been deleted")
+            if self.logger:
+                self.logger.info(f"File: {self.__str__()} has been deleted")
             return True
         else:
-            self.logger.info(f"File: {self.__str__()} does not exist")
+            if self.logger:
+                self.logger.info(f"File: {self.__str__()} does not exist")
             return FileNotFoundError

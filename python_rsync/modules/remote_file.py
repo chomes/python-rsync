@@ -228,17 +228,20 @@ class RemoteFile:
             self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
         try:
             self.__sftp_client.unlink(self.__str__())
-            self.logger.info(f"File: {self.__str__()} has been deleted")
+            if self.logger:
+                self.logger.info(f"File: {self.__str__()} has been deleted")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return True
         except FileNotFoundError:
-            self.logger.info(f"File: {self.__str__()} does not exist")
+            if self.logger:
+                self.logger.info(f"File: {self.__str__()} does not exist")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return FileNotFoundError
         except PermissionError:
-            self.logger.warning(f"You do not have access to: {self.__str__()}")
+            if self.logger:
+                self.logger.warning(f"You do not have access to: {self.__str__()}")
             self.__sftp_client.close()
             self.__ssh_client.close()
             return PermissionError

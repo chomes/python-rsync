@@ -195,24 +195,30 @@ class LocalDirectory:
         if force:
             try:
                 rmtree(self.directory)
-                self.logger.info(rf"{self.__str__()} has been deleted")
+                if self.logger:
+                    self.logger.info(rf"{self.__str__()} has been deleted")
                 return True
             except FileNotFoundError:
-                self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
+                if self.logger:
+                    self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
                 return False
             except PermissionError:
-                self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
+                if self.logger:
+                    self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
                 return False
         else:
             try:
                 self.directory.rmdir()
-                self.logger.info(rf"{self.__str__()} has been deleted")
+                if self.logger:
+                    self.logger.info(rf"{self.__str__()} has been deleted")
                 return True
             except FileNotFoundError:
-                self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
+                if self.logger:
+                    self.logger.warning(rf"{self.__str__()} does not exist, not deleting")
                 return False
             except PermissionError:
-                self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
+                if self.logger:
+                    self.logger.warning(rf"You do not have permission to delete {self.__str__()}, not deleting")
                 return False
 
     def directory_exists(self) -> True or False:

@@ -33,7 +33,7 @@ class RemoteDirectory:
         IMPORTANT:  If you have a large amount of files, expect this to some time as it does multiple ssh connections
         one at a time #TODO investigate processes to help this
         """
-        self.__ssh_client: SSHClient = active_ssh if active_ssh else SSHClient
+        self.__ssh_client: SSHClient = active_ssh if active_ssh else SSHClient()
         self.__auto_trust: bool = auto_trust
         if auto_trust:
             self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
@@ -392,6 +392,10 @@ class RemoteDirectory:
             return False
 
     def recursive_delete(self):
+        if not self.__check_ssh_connection():
+            self.__sftp_connect()
+        else:
+            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
         directories: List[RemoteDirectory] = [directory["object"] for directory in self.directory_items
                                               if directory["type"] == "directory"]
         files: List[RemoteFile] = [file["object"] for file in self.directory_items if file["type"] == "file"]
@@ -406,7 +410,8 @@ class RemoteDirectory:
             elif delete:
                 pass
         if len(failed_deletions) > 0:
-            self.logger.warning("Could not delete all files, check logs for errors")
+            if self.logger:
+                self.logger.warning("Could not delete all files, check logs for errors")
             return False
         else:
             for directory in directories:
@@ -419,11 +424,13 @@ class RemoteDirectory:
                 elif delete:
                     pass
             if len(failed_deletions) > 0:
-                self.logger.warning("Although it appears all files were deleted, some folders could not,"
-                                    "please investigate this problem")
+                if self.logger:
+                    self.logger.warning("Although it appears all files were deleted, some folders could not,"
+                                        "please investigate this problem")
                 return False
             elif len(failed_deletions) == 0:
-                self.logger.info("All files and folders were deleted")
+                if self.logger:
+                    self.logger.info("All files and folders were deleted")
                 return True
 
     def rmdir(self, force: bool = False) -> True or Exception:
@@ -443,26 +450,32 @@ class RemoteDirectory:
                 self.rmdir()
                 return True
             except FileNotFoundError:
-                self.logger.info(rf"Directory {self.__str__()} does not exist")
+                if self.logger:
+                    self.logger.info(rf"Directory {self.__str__()} does not exist")
                 return FileNotFoundError
             except PermissionError:
-                self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                if self.logger:
+                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
                 return PermissionError
             except OSError:
-                self.logger.warning(rf"Directory {self.__str__()} is not empty!")
+                if self.logger:
+                    self.logger.warning(rf"Directory {self.__str__()} is not empty!")
                 return OSError
         else:
             try:
                 self.__sftp_client.rmdir(self.__str__())
                 return True
             except FileNotFoundError:
-                self.logger.info(rf"Directory {self.__str__()} does not exist")
+                if self.logger:
+                    self.logger.info(rf"Directory {self.__str__()} does not exist")
                 return FileNotFoundError
             except PermissionError:
-                self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                if self.logger:
+                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
                 return PermissionError
             except OSError:
-                self.logger.warning(rf"Directory {self.__str__()} is not empty!")
+                if self.logger:
+                    self.logger.warning(rf"Directory {self.__str__()} is not empty!")
                 return OSError
 
     def directory_exists(self) -> True or False:
