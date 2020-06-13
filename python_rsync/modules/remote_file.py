@@ -23,12 +23,12 @@ class RemoteFile:
         :param username: username to remote to
         :param auto_trust: If the host isn't trusted
         """
-        self.__ssh_client: SSHClient = active_ssh if active_ssh else SSHClient()
+        self.ssh_client: SSHClient = active_ssh if active_ssh else SSHClient()
         self.__auto_trust: bool = auto_trust
         if auto_trust:
-            self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+            self.ssh_client.set_missing_host_key_policy(AutoAddPolicy())
         else:
-            self.__ssh_client.load_system_host_keys()
+            self.ssh_client.load_system_host_keys()
         if logger:
             self.logger: Logger = logger
         else:
@@ -39,7 +39,7 @@ class RemoteFile:
         self.__ssh_server: str = server
         self.__ssh_username: str = username
         self.file: Union[str, Path] = file
-        self.__sftp_client: None or SFTPClient = None
+        self.sftp_client: None or SFTPClient = None
 
     def __repr__(self):
         return f"Remote file {self.file}"
@@ -47,35 +47,38 @@ class RemoteFile:
     def __str__(self):
         return rf"{self.file}"
 
-    def __check_ssh_connection(self) -> True or False:
+    def check_ssh_connection(self) -> True or False:
         """
         Method used to check if the session is active or not
         :return:
         """
-        if self.__ssh_client.get_transport():
-            if self.__ssh_client.get_transport().is_active():
+        try:
+            transport = self.ssh_client.get_transport()
+            if transport.send_ignore():
                 return True
             else:
                 return False
-        else:
+        except EOFError:
+            return False
+        except AttributeError:
             return False
 
-    def __ssh_connect(self):
+    def ssh_connect(self):
         """
         Method used to set up a connection to ssh server
         :return: Updates the client attribute with a connected client
         """
-        self.__ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
-                                  username=self.__ssh_username, passphrase=self.__ssh_password,
-                                  key_filename=self.__ssh_key.__str__())
+        self.ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
+                                username=self.__ssh_username, passphrase=self.__ssh_password,
+                                key_filename=self.__ssh_key.__str__())
 
-    def __sftp_connect(self):
+    def sftp_connect(self):
         """
         Method used to set up a sftp connection
         :return: Updates the sftp connection
         """
-        self.__ssh_connect()
-        self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+        self.ssh_connect()
+        self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
 
     def md5_hash(self, copy: bool = False) -> str:
         """
@@ -83,11 +86,11 @@ class RemoteFile:
         :param copy: Boolean, set to True if you plan to copy the file after as to not close the ssh connection
         :return: md5 value of file
         """
-        if not self.__check_ssh_connection():
-            self.__ssh_connect()
-        stdin, stdout, stderr = self.__ssh_client.exec_command(f"md5sum {self.__str__()}")
+        if not self.check_ssh_connection():
+            self.ssh_connect()
+        stdin, stdout, stderr = self.ssh_client.exec_command(f"md5sum {self.__str__()}")
         if not copy:
-            self.__ssh_client.close()
+            self.ssh_client.close()
         return stdout.read().decode().split(" ")[0]
 
     def modified_time(self) -> ctime:
@@ -95,13 +98,13 @@ class RemoteFile:
         Method used to grab modified time of the file
         :return: Modified date of the file
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
-        modified_time = ctime(self.__sftp_client.file(self.__str__()).stat().st_mtime)
-        self.__sftp_client.close()
-        self.__ssh_client.close()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
+        modified_time = ctime(self.sftp_client.file(self.__str__()).stat().st_mtime)
+        self.sftp_client.close()
+        self.ssh_client.close()
         return modified_time
 
     def compare_md5(self, md5sum: str, copy: bool = False) -> True or False:
@@ -125,33 +128,33 @@ class RemoteFile:
         """
         try:
             if action == "local":
-                self.__sftp_client.put(remotepath=self.__str__(), localpath=local_path.__str__())
+                self.sftp_client.put(remotepath=self.__str__(), localpath=local_path.__str__())
                 if self.logger:
                     self.logger.info(f"Local file: {local_path.__str__()} was copied to {self.__str__()}")
             elif action == "remote":
-                self.__sftp_client.get(localpath=local_path.__str__(), remotepath=self.__str__())
+                self.sftp_client.get(localpath=local_path.__str__(), remotepath=self.__str__())
                 if self.logger:
                     self.logger.info(f"Remote file: {self.__str__()} was copied locally to {local_path.__str__()}")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return True
         except FileNotFoundError as e:
             if self.logger:
                 self.logger.warning(f" File {self.file} does not exist, please try again")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return e
         except PermissionError as e:
             if self.logger:
                 self.logger.warning(f"You don't have access to {local_path}, please try again")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return e
         except IsADirectoryError as e:
             if self.logger:
                 self.logger.warning(f"{local_path} is a directory and not a file, please try again")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return e
 
     def local_to_remote_copy(self, local_path: LocalFile) -> True or Exception:
@@ -160,10 +163,10 @@ class RemoteFile:
         :param local_path: Local location of the file
         :return: File will be copied over
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         if self.file_exists(copy=True):
             if not self.compare_md5(local_path.md5_hash(), copy=True):
                 return self.transfer_method(local_path=local_path, action="local")
@@ -180,10 +183,10 @@ class RemoteFile:
         :param local_path: Local location of the new file
         :return: File will be copied over
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         if local_path.file.exists():
             if not self.compare_md5(local_path.md5_hash(), copy=True):
                 return self.transfer_method(local_path=local_path, action="remote")
@@ -199,15 +202,15 @@ class RemoteFile:
         Method used to check if file exists
         :return: True or False
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         try:
-            self.__sftp_client.stat(self.__str__())
+            self.sftp_client.stat(self.__str__())
             if not copy:
-                self.__sftp_client.close()
-                self.__ssh_client.close()
+                self.sftp_client.close()
+                self.ssh_client.close()
                 return True
             else:
                 return True
@@ -215,33 +218,33 @@ class RemoteFile:
             if self.logger:
                 self.logger.warning(f"Can't find {self.file}, check that it exists")
             if not copy:
-                self.__sftp_client.close()
-                self.__ssh_client.close()
+                self.sftp_client.close()
+                self.ssh_client.close()
                 return False
             else:
                 return False
 
     def delete_file(self) -> True or Exception:
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         try:
-            self.__sftp_client.unlink(self.__str__())
+            self.sftp_client.unlink(self.__str__())
             if self.logger:
                 self.logger.info(f"File: {self.__str__()} has been deleted")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return True
         except FileNotFoundError:
             if self.logger:
                 self.logger.info(f"File: {self.__str__()} does not exist")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return FileNotFoundError
         except PermissionError:
             if self.logger:
                 self.logger.warning(f"You do not have access to: {self.__str__()}")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return PermissionError
