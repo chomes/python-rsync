@@ -12,7 +12,7 @@ from python_rsync.modules.logger import Logger
 
 class RemoteDirectory:
     def __init__(self, directory: Path, ssh_key: Path, logger: Logger or None, ssh_pass: None or str,
-                 server: str, server_port: int or None, username: str,
+                 server: str, username: str, server_port: int or None = None,
                  auto_trust: bool = False, cascade: bool = True,
                  active_ssh: None or SSHClient = None):
         """
@@ -33,12 +33,12 @@ class RemoteDirectory:
         IMPORTANT:  If you have a large amount of files, expect this to some time as it does multiple ssh connections
         one at a time #TODO investigate processes to help this
         """
-        self.__ssh_client: SSHClient = active_ssh if active_ssh else SSHClient()
+        self.ssh_client: SSHClient = active_ssh if active_ssh else SSHClient()
         self.__auto_trust: bool = auto_trust
         if auto_trust:
-            self.__ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+            self.ssh_client.set_missing_host_key_policy(AutoAddPolicy())
         else:
-            self.__ssh_client.load_system_host_keys()
+            self.ssh_client.load_system_host_keys()
         self.__ssh_key: Path = ssh_key
         if logger:
             self.logger: Logger = logger
@@ -50,17 +50,17 @@ class RemoteDirectory:
         self.__ssh_username: str = username
         self.directory: Union[str, Path] = directory
         if not active_ssh:
-            self.__ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
-                                      username=self.__ssh_username, passphrase=self.__ssh_password,
-                                      key_filename=self.__ssh_key.__str__())
-        sftp: SFTPClient = self.__ssh_client.open_sftp()
+            self.ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
+                                    username=self.__ssh_username, passphrase=self.__ssh_password,
+                                    key_filename=self.__ssh_key.__str__())
+        sftp: SFTPClient = self.ssh_client.open_sftp()
         try:
             stat = sftp.lstat(self.directory.__str__())
         except FileNotFoundError:
             stat = False
         self.directory_items: List[Dict[str, RemoteFile or RemoteDirectory]] = list()
         if stat and cascade:
-            stdin, stdout, stderr = self.__ssh_client.exec_command(f"find {self.directory} -print")
+            stdin, stdout, stderr = self.ssh_client.exec_command(f"find {self.directory} -print")
             pre_config: list = stdout.read().decode().split("\n")
             pre_config.pop(-1)
             pre_config.pop(0)
@@ -68,7 +68,7 @@ class RemoteDirectory:
                 checker = sftp.lstat(item)
                 if S_ISDIR(checker.st_mode):
                     self.directory_items.append({"name": Path(item).name,
-                                                 "object": RemoteDirectory(directory=item,
+                                                 "object": RemoteDirectory(directory=Path(item),
                                                                            ssh_key=self.__ssh_key,
                                                                            ssh_pass=self.__ssh_password,
                                                                            server_port=self.__ssh_port,
@@ -76,25 +76,25 @@ class RemoteDirectory:
                                                                            username=self.__ssh_username,
                                                                            auto_trust=self.__auto_trust,
                                                                            cascade=False,
-                                                                           active_ssh=self.__ssh_client,
+                                                                           active_ssh=self.ssh_client,
                                                                            logger=self.logger),
                                                  "type": "directory"})
                 else:
                     self.directory_items.append({"name": Path(item).name,
-                                                 "object": RemoteFile(file=item,
+                                                 "object": RemoteFile(file=Path(item),
                                                                       ssh_key=self.__ssh_key,
                                                                       ssh_pass=self.__ssh_password,
                                                                       server_port=self.__ssh_port,
                                                                       server=self.__ssh_server,
                                                                       username=self.__ssh_username,
                                                                       auto_trust=self.__auto_trust,
-                                                                      active_ssh=self.__ssh_client,
+                                                                      active_ssh=self.ssh_client,
                                                                       logger=self.logger),
                                                  "type": "file"})
         else:
             pass
         sftp.close()
-        self.__sftp_client: SFTPClient or None = None
+        self.sftp_client: SFTPClient or None = None
 
     def __str__(self):
         return rf"{self.directory}"
@@ -102,45 +102,93 @@ class RemoteDirectory:
     def __repr__(self):
         return f"{self.directory} has {len(self.directory_items)} files and folders"
 
-    def __ssh_connect(self):
+    def ssh_connect(self):
         """
         Method used to set up a connection to ssh server
         :return: Updates the client attribute with a connected client
         """
-        self.__ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
-                                  username=self.__ssh_username, passphrase=self.__ssh_password,
-                                  key_filename=self.__ssh_key.__str__())
+        self.ssh_client.connect(hostname=self.__ssh_server, port=self.__ssh_port,
+                                username=self.__ssh_username, passphrase=self.__ssh_password,
+                                key_filename=self.__ssh_key.__str__())
 
-    def __check_ssh_connection(self) -> True or False:
+    def check_ssh_connection(self) -> True or False:
         """
         Method used to check if the session is active or not
         :return:
         """
-        if self.__ssh_client.get_transport():
-            if self.__ssh_client.get_transport().is_active():
+        try:
+            transport = self.ssh_client.get_transport()
+            if transport.send_ignore():
                 return True
             else:
                 return False
-        else:
+        except EOFError:
+            return False
+        except AttributeError:
             return False
 
-    def __sftp_connect(self):
+    def sftp_connect(self):
         """
         Method used to set up a sftp connection
         :return: Updates the sftp connection
         """
-        self.__ssh_connect()
-        self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+        self.ssh_connect()
+        self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
+
+    def refresh_directory(self, cascade: bool = False):
+        """
+        Refresh the contents of the directory
+        :param cascade: False by default, set to true if you want to refresh even the subdirectories and files
+        of all the items in this directory
+        :return: Updated directory items
+        """
+        if not self.check_ssh_connection():
+            self.sftp_connect()
+        else:
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
+
+        stdin, stdout, stderr = self.ssh_client.exec_command(f"find {self.directory} -print")
+        pre_config: List[str] = stdout.read().decode().split("\n")
+        pre_config.pop(-1)
+        pre_config.pop(0)
+
+        for item in pre_config:
+            checker = self.sftp_client.lstat(item)
+            if S_ISDIR(checker.st_mode):
+                self.directory_items.append({"name": Path(item).name,
+                                             "object": RemoteDirectory(directory=Path(item),
+                                                                       ssh_key=self.__ssh_key,
+                                                                       ssh_pass=self.__ssh_password,
+                                                                       server_port=self.__ssh_port,
+                                                                       server=self.__ssh_server,
+                                                                       username=self.__ssh_username,
+                                                                       auto_trust=self.__auto_trust,
+                                                                       cascade=cascade,
+                                                                       active_ssh=self.ssh_client,
+                                                                       logger=self.logger),
+                                             "type": "directory"})
+            else:
+                self.directory_items.append({"name": Path(item).name,
+                                             "object": RemoteFile(file=Path(item),
+                                                                  ssh_key=self.__ssh_key,
+                                                                  ssh_pass=self.__ssh_password,
+                                                                  server_port=self.__ssh_port,
+                                                                  server=self.__ssh_server,
+                                                                  username=self.__ssh_username,
+                                                                  auto_trust=self.__auto_trust,
+                                                                  active_ssh=self.ssh_client,
+                                                                  logger=self.logger),
+                                             "type": "file"})
 
     def md5_hash(self) -> str:
         """
         Method used to grab the md5sum of the remote file, used only with compare_md5
         :return: md5 value of file
         """
-        if not self.__check_ssh_connection():
-            self.__ssh_connect()
-        stdin, stdout, stderr = self.__ssh_client.exec_command(f"md5sum {self.__str__()}")
-        self.__ssh_client.close()
+        if not self.check_ssh_connection():
+            self.ssh_connect()
+        stdin, stdout, stderr = self.ssh_client.exec_command(f"md5sum {self.__str__()}")
+        self.ssh_client.close()
         return stdout.read().decode().split(" ")[0]
 
     def modified_time(self) -> ctime:
@@ -148,13 +196,13 @@ class RemoteDirectory:
         Method used to grab modified time of the file
         :return: Modified date of the file
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client = self.__ssh_client.open_sftp()
-        modified_time = ctime(self.__sftp_client.file(self.__str__()).stat().st_mtime)
-        self.__sftp_client.close()
-        self.__ssh_client.close()
+            self.sftp_client = self.ssh_client.open_sftp()
+        modified_time = ctime(self.sftp_client.file(self.__str__()).stat().st_mtime)
+        self.sftp_client.close()
+        self.ssh_client.close()
         return modified_time
 
     def compare_md5(self, md5sum: str) -> True or False:
@@ -173,26 +221,26 @@ class RemoteDirectory:
         Create directory
         :return: Created the directory or not
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         try:
-            self.__sftp_client.mkdir(path=self.__str__(), mode=0o755)
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.mkdir(path=self.__str__(), mode=0o755)
+            self.sftp_client.close()
+            self.ssh_client.close()
             return True
         except PermissionError:
             if self.logger:
                 self.logger.warning("You do not have access to this area, please try again")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return False
         except OSError:
             if self.logger:
                 self.logger.warning("The directory already exists, this is not needed")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return False
 
     def destination_walker(self, destination: LocalDirectory, reverse: bool = False) -> List[Dict[str, Any]]:
@@ -202,8 +250,8 @@ class RemoteDirectory:
         :param reverse: False by default, reverse walk to make remote files
         :return: List of dicts
         """
-        if not self.__check_ssh_connection():
-            self.__ssh_connect()
+        if not self.check_ssh_connection():
+            self.ssh_connect()
         destination_items: List[Dict[str, LocalFile or LocalDirectory or RemoteFile or RemoteDirectory]] = list()
         if not reverse:
             for item in self.directory_items:
@@ -232,7 +280,7 @@ class RemoteDirectory:
                                                                   ssh_key=self.__ssh_key,
                                                                   auto_trust=self.__auto_trust,
                                                                   cascade=False,
-                                                                  active_ssh=self.__ssh_client,
+                                                                  active_ssh=self.ssh_client,
                                                                   logger=self.logger),
                                               "type": "directory"})
                 elif item["type"] == "file":
@@ -244,7 +292,7 @@ class RemoteDirectory:
                                                                    ssh_pass=self.__ssh_password,
                                                                    ssh_key=self.__ssh_key,
                                                                    auto_trust=self.__auto_trust,
-                                                                   active_ssh=self.__ssh_client,
+                                                                   active_ssh=self.ssh_client,
                                                                    logger=self.logger),
                                               "type": "file"})
         return destination_items
@@ -288,10 +336,10 @@ class RemoteDirectory:
         False by default
         :return: Confirmed file
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         for file in self.directory_items:
             if file["name"] == remote_file.file.name and file["object"].compare_md5(remote_file.md5_hash(copy=copy)):
                 return file
@@ -304,10 +352,10 @@ class RemoteDirectory:
         :param destination:
         :return: True or False
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         destination_items: List[LocalFile or LocalDirectory] = self.destination_walker(destination=destination)
         failed_files: List[Dict[str, Exception]] = list()
         if destination.directory.exists():
@@ -350,10 +398,10 @@ class RemoteDirectory:
         :param source: Local directory to copy to remote
         :return:Successful copy or failure
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         destination_items: List[Dict[str, RemoteDirectory or RemoteFile]] = self.destination_walker(destination=source,
                                                                                                     reverse=True)
         failed_files: List[Dict[str, Exception]] = list()
@@ -391,13 +439,14 @@ class RemoteDirectory:
                 self.logger.warning("Not all files copied completely, check logs for details")
             return False
 
-    def recursive_delete(self):
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+    def recursive_delete(self) -> True or False:
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
         directories: List[RemoteDirectory] = [directory["object"] for directory in self.directory_items
                                               if directory["type"] == "directory"]
+        directories.reverse()
         files: List[RemoteFile] = [file["object"] for file in self.directory_items if file["type"] == "file"]
         failed_deletions: List[Dict[str, Exception]] = list()
         for file in files:
@@ -430,7 +479,7 @@ class RemoteDirectory:
                 return False
             elif len(failed_deletions) == 0:
                 if self.logger:
-                    self.logger.info("All files and folders were deleted")
+                    self.logger.info("All sub folders and files were deleted")
                 return True
 
     def rmdir(self, force: bool = False) -> True or Exception:
@@ -439,10 +488,10 @@ class RemoteDirectory:
         :param force: False by default, will recursively delete the entire remote directory.
         :return: True or Exception
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client: SFTPClient = self.__ssh_client.open_sftp()
+            self.sftp_client: SFTPClient = self.ssh_client.open_sftp()
 
         if force:
             try:
@@ -455,7 +504,8 @@ class RemoteDirectory:
                 return FileNotFoundError
             except PermissionError:
                 if self.logger:
-                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try \
+                    again in a new dir")
                 return PermissionError
             except OSError:
                 if self.logger:
@@ -463,7 +513,9 @@ class RemoteDirectory:
                 return OSError
         else:
             try:
-                self.__sftp_client.rmdir(self.__str__())
+                self.sftp_client.rmdir(self.__str__())
+                if self.logger:
+                    self.logger.info(rf"Directory {self.__str__()} is deleted")
                 return True
             except FileNotFoundError:
                 if self.logger:
@@ -471,7 +523,8 @@ class RemoteDirectory:
                 return FileNotFoundError
             except PermissionError:
                 if self.logger:
-                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try again in a new dir")
+                    self.logger.warning(rf"You do not have permission to access {self.__str__()} try \
+                    again in a new dir")
                 return PermissionError
             except OSError:
                 if self.logger:
@@ -483,20 +536,20 @@ class RemoteDirectory:
         Method used to check if file exists
         :return: True or False
         """
-        if not self.__check_ssh_connection():
-            self.__sftp_connect()
+        if not self.check_ssh_connection():
+            self.sftp_connect()
         else:
-            self.__sftp_client = self.__ssh_client.open_sftp()
+            self.sftp_client = self.ssh_client.open_sftp()
         try:
-            self.__sftp_client.stat(self.__str__())
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.stat(self.__str__())
+            self.sftp_client.close()
+            self.ssh_client.close()
             return True
         except FileNotFoundError:
             if self.logger:
                 self.logger.warning(f"Can't find {self.directory}, check that it exists")
-            self.__sftp_client.close()
-            self.__ssh_client.close()
+            self.sftp_client.close()
+            self.ssh_client.close()
             return False
 
     def remote_to_local_file_copy(self, source: RemoteFile, destination: LocalFile) -> True or Exception:
@@ -517,5 +570,3 @@ class RemoteDirectory:
         """
         destination: Dict[str, RemoteFile] = self.individual_walker(source)
         return destination["object"].local_to_remote_copy(source)
-
-

@@ -4,14 +4,19 @@ from typing import Union
 
 
 class Logger:
-    def __init__(self, log_path: Union[str, Path], log_level: str):
+    def __init__(self, log_level: str, log_path: Union[str, Path] or None = None):
         self.__leveling: dict = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING,
                                  "critical": logging.CRITICAL}
         self.__log_format: str = "%(asctime)s %(levelname)s %(message)s"
-        self.log_path: Union[str, Path] = log_path
-        logging.basicConfig(format=self.__log_format, level=self.__leveling[log_level.lower()],
-                            filename=log_path, filemode="a", datefmt="%d/%m/%Y %H:%M:%S")
+        self.log_path: Union[str, Path] or None = log_path
+        if self.log_path:
+            logging.basicConfig(format=self.__log_format, level=self.__leveling[log_level.lower()],
+                                filename=log_path, filemode="a", datefmt="%d/%m/%Y %H:%M:%S")
+        else:
+            logging.basicConfig(format=self.__log_format, level=self.__leveling[log_level.lower()],
+                                datefmt="%d/%m/%Y %H:%M:%S")
         self.logger: logging = logging
+        self.logger.getLogger("paramiko").setLevel(self.logger.WARNING)
 
     def warning(self, message: str):
         """
