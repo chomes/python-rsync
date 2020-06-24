@@ -8,10 +8,10 @@ from python_rsync.modules.logger import Logger
 
 
 class RemoteFile:
-    def __init__(self, file: Path, ssh_key: Path, logger: Logger or None, ssh_pass: None or str,
+    def __init__(self, file: Path, ssh_key: Path, ssh_pass: None or str,
                  server: str, server_port: int or None, username: str,
                  auto_trust: bool = False,
-                 active_ssh: SSHClient or None = None):
+                 active_ssh: SSHClient or None = None, logger: Logger or None = None):
         """
         A way to manipulate remote files from a server to manage them
         :param file: Path of the file on the remote server

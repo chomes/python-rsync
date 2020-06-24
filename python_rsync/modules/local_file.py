@@ -9,7 +9,7 @@ from python_rsync.modules.logger import Logger
 
 
 class LocalFile:
-    def __init__(self, file: Path, logger: Logger or None):
+    def __init__(self, file: Path, logger: Logger or None = None):
         """
         Module used to manipulate local files within your system for copying, and checking md5 sums
         :param file:

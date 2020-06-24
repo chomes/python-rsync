@@ -9,7 +9,7 @@ from python_rsync.modules.logger import Logger
 
 
 class LocalDirectory:
-    def __init__(self, location: Path, logger: Logger or None):
+    def __init__(self, location: Path, logger: Logger or None = None):
         """
         Local directory module used to manipulate local files and directories in your physical system
         :param location: Location of the parent directory for the folder you want to manipulate
@@ -230,3 +230,9 @@ class LocalDirectory:
             return True
         else:
             return False
+
+    # mirror delete
+    # check files in directory
+    # check if md5sum is the same
+    # if none add to list
+    # purge list

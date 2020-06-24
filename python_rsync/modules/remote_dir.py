@@ -11,10 +11,10 @@ from python_rsync.modules.logger import Logger
 
 
 class RemoteDirectory:
-    def __init__(self, directory: Path, ssh_key: Path, logger: Logger or None, ssh_pass: None or str,
+    def __init__(self, directory: Path, ssh_key: Path, ssh_pass: None or str,
                  server: str, username: str, server_port: int or None = None,
                  auto_trust: bool = False, cascade: bool = True,
-                 active_ssh: None or SSHClient = None):
+                 active_ssh: None or SSHClient = None, logger: Logger or None = None):
         """
         Remote directory allows you to manipulate the files and folders inside of the directory by copying
         them, getting their hash sum or by checking things like modified date
