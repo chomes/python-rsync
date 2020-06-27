@@ -2,7 +2,7 @@
 # Author: chomes@github
 # Current version: 1.5
 
-from shutil import which
+from configparser import ConfigParser
 from pathlib import Path
 from python_rsync.modules.sync import RsyncClient
 import argparse
@@ -10,6 +10,7 @@ import argparse
 
 def main():
     parser: argparse = argparse.ArgumentParser()
+    parser.add_argument("--config", help="Provide a config file which holds all values you need to backup")
     parser.add_argument("--source", help="Provide a source path for the directory you're copying from")
     parser.add_argument("--destination", help="Provide a destination path for the directory you're copying to")
     parser.add_argument("--backup", const=True, help="""Choice what type of back: local, remlo, lorem
@@ -28,6 +29,22 @@ def main():
                                                         "we'll auto accept a trusted connection to make the backup"
                                                         "happen")
     parser.add_argument("--emailconfig", const=True, help="If you want emails specify the template")
+    args = parser.parse_args()
+    if args.config:
+        rsync = RsyncClient(sync_config=rf"{args.config}")
+        # with open configparser
+        # read config file use raw string on path
+        # check if section is a certain type of backup
+        # check if it requests mirror
+        # run backup type
+
+    # if non config
+    # check for backup type first
+    # based on backup type grab arguments to make rsync client
+    # run backup
+
+
+
 
 
 
