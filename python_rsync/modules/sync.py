@@ -18,7 +18,7 @@ class RsyncClient:
                  remote_server: str or None = None, ssh_key: str or None = None, email_config: str or None = None,
                  source: str or None = None, destination: str or None = None, log_path: str or None = None,
                  log_level: str = "info", auto_trust: bool = False, server_port: int or None = None,
-                 backup_type: str or None = None):
+                 backup_type: str or None = None, mirror: bool = False):
         """
         Init for creating the class
         :param sync_config: This is a config file that takes a list of arguments:
@@ -38,18 +38,18 @@ class RsyncClient:
         if sync_config:
             config.read(Path(rf"{sync_config}"))
             data: dict = {key: value for section in config.sections() for key, value in config.items(section)}
-        try:
-            self.logger: Logger = Logger(log_path=None, log_level=data["log_level"])
-        except KeyError:
-            self.logger: Logger = Logger(log_path=None, log_level=log_level)
 
-        try:
-            if data["log_location"]:
+        if "data" in locals():
+            try:
                 self.logger: Logger = Logger(log_path=Path(rf"{data['log_location']}"),
                                              log_level=data["log_level"])
-        except KeyError:
-            if log_path:
-                self.logger: Logger = Logger(log_path=Path(rf"{log_path}"), log_level=log_level)
+            except KeyError:
+                self.logger: Logger = Logger(log_path=None, log_level=data["log_level"])
+        elif log_path:
+            self.logger: Logger = Logger(log_path=Path(rf"{log_path}"), log_level=log_level)
+        else:
+            self.logger: Logger = Logger(log_path=None, log_level=log_level)
+
         try:
             self.backup_type: str = data["backup_type"]
         except KeyError:
@@ -59,6 +59,18 @@ class RsyncClient:
             self.sor: Union[str, Path] = Path(rf"{data['source']}")
         except KeyError:
             self.sor: Union[str, Path] = Path(rf"{source}")
+
+        try:
+            if data["mirror"]:
+                self.mirror: bool = True
+            else:
+                self.mirror: bool = False
+        except KeyError:
+            if mirror:
+                self.mirror: bool = True
+            else:
+                self.mirror: bool = False
+
 
         try:
             self.des: Union[str, Path] = Path(rf"{data['des']}")
@@ -128,6 +140,8 @@ class RsyncClient:
         Run a copy from remote to local directory
         :return: Result of action
         """
+        if self.mirror:
+            self.mirror_prune()
         if self.email:
             self.email.compose_message(action="start")
         self.sor, self.des = self.sor_des_generator()
@@ -198,6 +212,8 @@ class RsyncClient:
         Run a local dir copy to local
         :return: Result of action
         """
+        if self.mirror:
+            self.mirror_prune()
         if self.email:
             self.email.compose_message(action="start")
         self.sor, self.des = self.sor_des_generator()
