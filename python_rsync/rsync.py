@@ -2,8 +2,6 @@
 # Author: chomes@github
 # Current version: 1.5
 
-from configparser import ConfigParser
-from pathlib import Path
 from python_rsync.modules.sync import RsyncClient
 import argparse
 

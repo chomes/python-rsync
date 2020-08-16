@@ -71,7 +71,6 @@ class RsyncClient:
             else:
                 self.mirror: bool = False
 
-
         try:
             self.des: Union[str, Path] = Path(rf"{data['des']}")
         except KeyError:
