@@ -4,6 +4,7 @@
 
 from python_rsync.modules.sync import RsyncClient
 import argparse
+from configparser import ConfigParser
 
 
 def main():
@@ -40,4 +41,17 @@ def main():
     parser.add_argument("--emailconfig", nargs="?", const=True, help="If you want emails specify the template")
     args = parser.parse_args()
     if args.config:
-        rsync = RsyncClient(sync_config=rf"{args.config}")
+        print("test")
+        # validate values first using schema, if schema fails do not run rsync client
+        # rsync = RsyncClient(sync_config=rf"{args.config}")
+        # read config file
+        # if config reads backup as remlo or lorem run remote backup
+        # else run local backup
+    #elif args.backup
+    # split arg into two sections
+    # first one is to determine if full path or remote source, if remote source run method to split (make new method)
+    # assign first section to source
+    # do the same for second section
+    # check other args (check for port, loglevel, autotrsut, emailconfig, mirror etc)
+    # validate data first
+    # create rsync client with args
